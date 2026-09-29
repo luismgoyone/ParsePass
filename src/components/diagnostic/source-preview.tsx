@@ -39,7 +39,7 @@ export function SourcePreview({
   );
 }
 
-function PdfPages({
+export function PdfPages({
   bytes,
   doc,
   issues,

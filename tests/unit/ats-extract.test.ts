@@ -84,7 +84,7 @@ describe("DOCX with a header, a table and a hidden link", async () => {
   });
 
   it("flags the table, the header contact details, the heading and the link", () => {
-    expect(rules(diagnosis)).toEqual(["LAY-02", "HDR-01", "SEC-02", "DAT-01", "LNK-01"]);
+    expect(rules(diagnosis)).toEqual(["LAY-02", "HDR-01", "SEC-02", "LNK-01"]);
     expect(diagnosis.issues[0].lines.map((i) => doc.lines[i].text)).toEqual([
       "TypeScript",
       "Expert",

@@ -6,13 +6,13 @@ const takeConversion = vi.fn();
 const extractResume = vi.fn();
 
 vi.mock("@/lib/rate-limit", () => ({ takeConversion: (r: Request) => takeConversion(r) }));
-vi.mock("@/lib/claude/extract-resume", async (original) => ({
-  ...(await original<typeof import("@/lib/claude/extract-resume")>()),
+vi.mock("@/lib/extraction", async (original) => ({
+  ...(await original<typeof import("@/lib/extraction")>()),
   extractResume: (text: string, links: unknown) => extractResume(text, links),
 }));
 
 const { POST } = await import("@/app/api/extract/route");
-const { ExtractionError } = await import("@/lib/claude/extract-resume");
+const { ExtractionError } = await import("@/lib/extraction");
 
 const TEXT =
   "JORDAN RIVERA\njordan.rivera@example.com\nSenior Software Engineer at Brightline Health, 04/21 – Present";

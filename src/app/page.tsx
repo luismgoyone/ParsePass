@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { UploadPanel } from "@/components/upload/upload-panel";
+import { aiInfo } from "@/lib/extraction/provider";
 
 const GUARANTEES = [
   { icon: Columns2, label: "Single-column ATS template", tone: "text-success" },
@@ -80,7 +81,7 @@ export default function HomePage() {
           <Feature
             icon={ListChecks}
             title="Structured and editable"
-            body="Claude restructures what you wrote into contact, summary, experience, education and skills. You review every field before anything is exported."
+            body={`${aiInfo().label} restructures what you wrote into contact, summary, experience, education and skills. You review every field before anything is exported.`}
             foot="Typed JSON schema, validated with Zod"
           />
           <Feature

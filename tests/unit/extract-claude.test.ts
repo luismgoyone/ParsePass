@@ -47,9 +47,9 @@ beforeEach(() => {
   lastRequest = null;
 });
 
-describe("extractResume", () => {
+describe("extractWithClaude", () => {
   it("returns the validated resume and token usage", async () => {
-    const { extractResume } = await import("@/lib/claude/extract-resume");
+    const { extractWithClaude: extractResume } = await import("@/lib/extraction/anthropic");
     const result = await extractResume("JORDAN RIVERA ...", [
       { url: "https://x.dev", text: "Site" },
     ]);
@@ -58,7 +58,7 @@ describe("extractResume", () => {
   });
 
   it("asks a Sonnet model for schema-constrained output with refusal fallbacks", async () => {
-    const { extractResume } = await import("@/lib/claude/extract-resume");
+    const { extractWithClaude: extractResume } = await import("@/lib/extraction/anthropic");
     await extractResume("JORDAN RIVERA ...", [{ url: "https://x.dev", text: "Site" }]);
     expect(lastRequest).toMatchObject({ model: "claude-sonnet-5-5", fallbacks: "default" });
     const config = lastRequest!.output_config as { format: { type: string; schema: object } };
@@ -72,19 +72,19 @@ describe("extractResume", () => {
 
   it("rejects output that doesn't match the schema", async () => {
     reply = { status: 200, body: message(JSON.stringify({ contact: {} })) };
-    const { extractResume } = await import("@/lib/claude/extract-resume");
+    const { extractWithClaude: extractResume } = await import("@/lib/extraction/anthropic");
     await expect(extractResume("text", [])).rejects.toMatchObject({ status: 502 });
   });
 
   it("turns a refusal into a 422", async () => {
     reply = { status: 200, body: message("", "refusal") };
-    const { extractResume } = await import("@/lib/claude/extract-resume");
+    const { extractWithClaude: extractResume } = await import("@/lib/extraction/anthropic");
     await expect(extractResume("text", [])).rejects.toMatchObject({ status: 422 });
   });
 
   it("reports a missing API key as not configured", async () => {
     vi.stubEnv("ANTHROPIC_API_KEY", "");
-    const { extractResume } = await import("@/lib/claude/extract-resume");
+    const { extractWithClaude: extractResume } = await import("@/lib/extraction/anthropic");
     await expect(extractResume("text", [])).rejects.toMatchObject({ status: 503 });
     vi.stubEnv("ANTHROPIC_API_KEY", "test");
   });

@@ -222,6 +222,7 @@ function ModeTab({
 }
 
 export function PrivacyNote() {
+  const { ai } = useSession();
   return (
     <div className="mx-6 mb-6 flex items-center gap-3 rounded-md border border-border bg-console p-3.5">
       <span className="flex size-8 shrink-0 items-center justify-center rounded-md border border-success/30 bg-success/10">
@@ -229,7 +230,7 @@ export function PrivacyNote() {
       </span>
       <p>
         <strong className="font-semibold text-success">Privacy:</strong> your resume is processed in
-        memory, sent only to the Claude API to structure it, and never stored.
+        memory and never stored. {ai.privacy}
       </p>
     </div>
   );

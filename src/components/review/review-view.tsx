@@ -26,7 +26,7 @@ import { EMPTY_EXPERIENCE, type Resume } from "@/lib/resume/schema";
 import { AddButton, Field, IconButton, ListEditor, SectionCard, TextArea } from "./fields";
 
 export function ReviewView({ next }: { next?: React.ReactNode }) {
-  const { ready, doc, resume, extracted, model, setResume, revertResume } = useSession();
+  const { ready, doc, resume, extracted, model, setResume, revertResume, ai } = useSession();
   const report = useMemo(
     () => (resume && doc ? checkHonesty(resume, doc.sourceText) : null),
     [resume, doc],
@@ -36,7 +36,9 @@ export function ReviewView({ next }: { next?: React.ReactNode }) {
   if (!doc) return <NeedsUpload />;
   if (!resume || !report) {
     return (
-      <NeedsUpload message="Run the diagnostic and structure your resume with Claude first." />
+      <NeedsUpload
+        message={`Run the diagnostic and structure your resume with ${ai.label} first.`}
+      />
     );
   }
 
@@ -54,7 +56,7 @@ export function ReviewView({ next }: { next?: React.ReactNode }) {
       <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-2 font-mono text-xs md:px-6">
         <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1">
           <ListTree aria-hidden className="size-3.5 text-muted-foreground" />
-          Structured by {model ?? "Claude"}
+          Structured by {model ?? ai.label}
           <span className="text-subtle-foreground">(JSON schema, validated with Zod)</span>
         </span>
         <HonestyChip flags={report.flags.length} />
@@ -460,7 +462,7 @@ export function ReviewView({ next }: { next?: React.ReactNode }) {
             className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-4 py-2 font-mono text-[13px] hover:border-border-strong hover:bg-raised disabled:opacity-50"
           >
             <RotateCcw aria-hidden className="size-4" />
-            Revert to Claude&apos;s extraction
+            Revert to {ai.label}&apos;s extraction
           </button>
           {next}
         </div>

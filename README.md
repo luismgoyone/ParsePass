@@ -70,17 +70,20 @@ cp .env.example .env.local   # add ANTHROPIC_API_KEY for the extraction step
 pnpm dev                     # http://localhost:3000
 ```
 
-Upload, diagnostic and export work without any keys. Only step 3 (Claude extraction) needs
-`ANTHROPIC_API_KEY`.
+Upload and the diagnostic work without any keys. Structuring the resume (and so review and export)
+needs a model: `ANTHROPIC_API_KEY` for Claude, or `GEMINI_API_KEY` for Gemini's free tier.
 
 ## Environment variables
 
-| Name                                                  | Required          | Description                                                                                                                                 |
-| ----------------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ANTHROPIC_API_KEY`                                   | For extraction    | Claude API key. Server-only.                                                                                                                |
-| `ANTHROPIC_MODEL`                                     | No                | Override the extraction model (default `claude-sonnet-5-5`).                                                                                |
-| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | For rate limiting | Upstash Redis. `KV_REST_API_URL` / `KV_REST_API_TOKEN` (set by the Vercel Marketplace integration) also work. Unset disables rate limiting. |
-| `RATE_LIMIT_PER_DAY`                                  | No                | Conversions per visitor per day (default 5).                                                                                                |
+| Name                                                  | Required              | Description                                                                                                                                                                               |
+| ----------------------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ANTHROPIC_API_KEY`                                   | For extraction        | Claude API key. Server-only.                                                                                                                                                              |
+| `ANTHROPIC_MODEL`                                     | No                    | Override the extraction model (default `claude-sonnet-5-5`).                                                                                                                              |
+| `GEMINI_API_KEY`                                      | Alternative to Claude | Google Gemini free-tier key. Used when no Anthropic key is set (or `EXTRACTION_PROVIDER=gemini`). Google may use free-tier content to improve its products, and the privacy note says so. |
+| `GEMINI_MODEL`                                        | No                    | Override the Gemini model (default `gemini-2.5-flash`).                                                                                                                                   |
+| `EXTRACTION_PROVIDER`                                 | No                    | `anthropic` or `gemini`, to choose explicitly when both keys are set.                                                                                                                     |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | For rate limiting     | Upstash Redis. `KV_REST_API_URL` / `KV_REST_API_TOKEN` (set by the Vercel Marketplace integration) also work. Unset disables rate limiting.                                               |
+| `RATE_LIMIT_PER_DAY`                                  | No                    | Conversions per visitor per day (default 5).                                                                                                                                              |
 
 The app builds and all tests pass with no env vars set.
 
@@ -94,14 +97,15 @@ The app builds and all tests pass with no env vars set.
 
 ## Scripts
 
-| Script                      | What it does                                                                        |
-| --------------------------- | ----------------------------------------------------------------------------------- |
-| `pnpm dev`                  | Start the dev server                                                                |
-| `pnpm build` / `pnpm start` | Production build and server                                                         |
-| `pnpm lint` / `pnpm format` | ESLint / Prettier                                                                   |
-| `pnpm typecheck`            | Generate route types and run `tsc`                                                  |
-| `pnpm test`                 | Vitest unit tests (ATS checks, honesty check, extraction, export round trip)        |
-| `pnpm test:e2e`             | Playwright end-to-end tests against a mock Claude API; records a video of each test |
-| `pnpm fixtures`             | Regenerate the resume fixtures in `tests/fixtures` and the sample resume            |
-| `pnpm demo`                 | Re-record the screenshots and GIF in `docs/demo` (after `pnpm build`)               |
-| `pnpm sync-repo`            | Apply `repo.config.json` and branch protection to GitHub                            |
+| Script                       | What it does                                                                                        |
+| ---------------------------- | --------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                   | Start the dev server                                                                                |
+| `pnpm build` / `pnpm start`  | Production build and server                                                                         |
+| `pnpm lint` / `pnpm format`  | ESLint / Prettier                                                                                   |
+| `pnpm typecheck`             | Generate route types and run `tsc`                                                                  |
+| `pnpm test`                  | Vitest unit tests (ATS checks, honesty check, extraction, export round trip)                        |
+| `pnpm test:e2e`              | Playwright end-to-end tests against a mock Claude API; records a video of each test                 |
+| `pnpm fixtures`              | Regenerate the resume fixtures in `tests/fixtures` and the sample resume                            |
+| `pnpm eval:extract <folder>` | Run every PDF/DOCX in a folder through the configured model and report what the honesty check flags |
+| `pnpm demo`                  | Re-record the screenshots and GIF in `docs/demo` (after `pnpm build`)                               |
+| `pnpm sync-repo`             | Apply `repo.config.json` and branch protection to GitHub                                            |

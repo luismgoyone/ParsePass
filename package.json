@@ -15,7 +15,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "sync-repo": "bash scripts/sync-repo.sh",
-    "fixtures": "tsx scripts/make-fixtures.tsx"
+    "fixtures": "tsx scripts/make-fixtures.tsx",
+    "demo": "node scripts/record-demo.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",

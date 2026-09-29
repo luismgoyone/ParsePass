@@ -181,3 +181,12 @@ fake latency numbers). The app follows the mockups' layout but keeps copy true t
   re-extracted with the same code to produce the "after" ATS view.
 - Issue checks are pure functions over extracted text and layout (`src/lib/ats/`), so they are
   unit-tested against generated PDF and DOCX fixtures.
+- **Structured outputs instead of a forced tool call.** The spec calls for "tool calling with a
+  schema". Current Sonnet models reject a forced `tool_choice`, so extraction uses structured
+  outputs (`output_config.format`, built from the Zod `ResumeSchema`) on `claude-sonnet-5-5`.
+  Same guarantee: the response is schema-valid JSON, and the app validates it with Zod again.
+  Server-side refusal fallback (`fallbacks: "default"`) is enabled.
+- **Claude copies, the app normalizes.** Claude copies dates and text exactly as written; the app
+  converts dates to "Mon YYYY" itself (`src/lib/ats/dates.ts`). That keeps the honesty check
+  (`src/lib/resume/honesty.ts`) a plain match against the source text. The check re-runs on
+  every edit, so anything a user adds is visible too.

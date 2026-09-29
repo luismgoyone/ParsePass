@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 
 import { ExtractError } from "@/lib/ats/errors";
 import type { Diagnosis, ExtractedDoc } from "@/lib/ats/types";
+import type { Resume } from "@/lib/resume/schema";
 
 /** The original file, kept in memory only so the diagnostic screen can show it. */
 export interface SourcePreview {
@@ -17,6 +18,11 @@ export interface SourcePreview {
 export interface SessionState {
   doc: ExtractedDoc | null;
   diagnosis: Diagnosis | null;
+  /** The resume being edited. */
+  resume: Resume | null;
+  /** Claude's untouched extraction, to revert edits and to build the change log. */
+  extracted: Resume | null;
+  model: string | null;
 }
 
 interface SessionContextValue extends SessionState {
@@ -27,12 +33,23 @@ interface SessionContextValue extends SessionState {
   error: string | null;
   ingestFile: (file: File) => Promise<boolean>;
   ingestText: (text: string) => Promise<boolean>;
+  /** Send the extracted text to Claude and store the structured resume. */
+  structure: () => Promise<boolean>;
+  structuring: boolean;
+  setResume: (resume: Resume) => void;
+  revertResume: () => void;
   clearError: () => void;
   reset: () => void;
 }
 
 const STORAGE_KEY = "parsepass:session:v1";
-const EMPTY: SessionState = { doc: null, diagnosis: null };
+const EMPTY: SessionState = {
+  doc: null,
+  diagnosis: null,
+  resume: null,
+  extracted: null,
+  model: null,
+};
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 
@@ -41,6 +58,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [source, setSource] = useState<SourcePreview | null>(null);
   const [busy, setBusy] = useState(false);
+  const [structuring, setStructuring] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -74,7 +92,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
           load(),
           import("@/lib/ats/checks"),
         ]);
-        setState({ doc, diagnosis: diagnose(doc) });
+        setState({ ...EMPTY, doc, diagnosis: diagnose(doc) });
         setSource(preview);
         return true;
       } catch (e) {
@@ -113,6 +131,40 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     [run],
   );
 
+  const structure = useCallback(async () => {
+    if (!state.doc) return false;
+    setStructuring(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/extract", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text: state.doc.sourceText, links: state.doc.links }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        resume?: Resume;
+        model?: string;
+        error?: string;
+      };
+      if (!res.ok || !data.resume) {
+        setError(data.error ?? "Claude couldn't structure this resume. Try again.");
+        return false;
+      }
+      setState((s) => ({
+        ...s,
+        resume: data.resume!,
+        extracted: data.resume!,
+        model: data.model ?? null,
+      }));
+      return true;
+    } catch {
+      setError("Couldn't reach the server. Check your connection and try again.");
+      return false;
+    } finally {
+      setStructuring(false);
+    }
+  }, [state.doc]);
+
   const value = useMemo<SessionContextValue>(
     () => ({
       ...state,
@@ -122,13 +174,17 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       error,
       ingestFile,
       ingestText,
+      structure,
+      structuring,
+      setResume: (resume) => setState((s) => ({ ...s, resume })),
+      revertResume: () => setState((s) => ({ ...s, resume: s.extracted })),
       clearError: () => setError(null),
       reset: () => {
         setState(EMPTY);
         setSource(null);
       },
     }),
-    [state, ready, source, busy, error, ingestFile, ingestText],
+    [state, ready, source, busy, error, ingestFile, ingestText, structure, structuring],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-import { appUrl, E2E } from "./tests/e2e/support/env";
+import { appUrl, E2E, mockAnthropicUrl } from "./tests/e2e/support/env";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -20,11 +20,24 @@ export default defineConfig({
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: [
     {
+      command: "node tests/e2e/support/mock-anthropic.mts",
+      url: `${mockAnthropicUrl}/health`,
+      env: { MOCK_ANTHROPIC_PORT: String(E2E.mockAnthropicPort) },
+      reuseExistingServer: false,
+    },
+    {
       // CI runs the production build; locally the dev server is faster.
       command: process.env.CI
         ? `pnpm start --port ${E2E.appPort}`
         : `pnpm dev --port ${E2E.appPort}`,
       url: appUrl,
+      // The app talks only to the mock Claude API. No rate limiting in tests.
+      env: {
+        ANTHROPIC_API_KEY: "e2e",
+        ANTHROPIC_BASE_URL: mockAnthropicUrl,
+        UPSTASH_REDIS_REST_URL: "",
+        UPSTASH_REDIS_REST_TOKEN: "",
+      },
       reuseExistingServer: false,
       timeout: 120_000,
     },

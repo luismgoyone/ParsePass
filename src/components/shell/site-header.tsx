@@ -4,13 +4,21 @@ import { Check } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { useSession } from "@/components/session/session-provider";
 import { cn } from "@/lib/utils";
 
-import { STEPS, stepForPath } from "./steps";
+import { STEPS, stepForPath, type StepId } from "./steps";
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const session = useSession();
   const current = STEPS.findIndex((s) => s.id === stepForPath(pathname));
+  const reachable: Record<StepId, boolean> = {
+    upload: true,
+    diagnostic: !!session.doc,
+    review: false,
+    export: false,
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-panel/95 backdrop-blur">
@@ -28,36 +36,34 @@ export function SiteHeader() {
 
         <nav aria-label="Steps" className="hidden items-center md:flex">
           {STEPS.map((step, i) => {
-            const done = i < current;
+            const done = i < current && reachable[step.id];
             const active = i === current;
             return (
               <div key={step.id} className="flex items-center">
                 {i > 0 && <span className="mx-2 text-subtle-foreground">/</span>}
-                <Link
-                  href={step.href}
-                  aria-current={active ? "step" : undefined}
-                  className={cn(
-                    "flex h-14 items-center gap-1.5 border-b-2 border-transparent font-mono text-[13px] transition-colors",
-                    active && "border-primary text-primary-text",
-                    done && "text-success",
-                    !active && !done && "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {done ? (
-                    <Check aria-hidden className="size-3.5" />
-                  ) : (
-                    <span
-                      aria-hidden
-                      className={cn(
-                        "flex size-4 items-center justify-center rounded-full border text-[10px]",
-                        active ? "border-primary bg-primary text-white" : "border-border-strong",
-                      )}
-                    >
-                      {i + 1}
-                    </span>
-                  )}
-                  {step.label}
-                </Link>
+                {reachable[step.id] || active ? (
+                  <Link
+                    href={step.href}
+                    aria-current={active ? "step" : undefined}
+                    className={cn(
+                      "flex h-14 items-center gap-1.5 border-b-2 border-transparent font-mono text-[13px] transition-colors",
+                      active && "border-primary text-primary-text",
+                      done && "text-success",
+                      !active && !done && "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    <StepMarker index={i} active={active} done={done} />
+                    {step.label}
+                  </Link>
+                ) : (
+                  <span
+                    aria-disabled
+                    className="flex h-14 cursor-not-allowed items-center gap-1.5 font-mono text-[13px] text-subtle-foreground"
+                  >
+                    <StepMarker index={i} active={false} done={false} />
+                    {step.label}
+                  </span>
+                )}
               </div>
             );
           })}
@@ -73,5 +79,20 @@ export function SiteHeader() {
         </a>
       </div>
     </header>
+  );
+}
+
+function StepMarker({ index, active, done }: { index: number; active: boolean; done: boolean }) {
+  if (done) return <Check aria-hidden className="size-3.5" />;
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "flex size-4 items-center justify-center rounded-full border text-[10px]",
+        active ? "border-primary bg-primary text-white" : "border-border-strong",
+      )}
+    >
+      {index + 1}
+    </span>
   );
 }

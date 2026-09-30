@@ -1,0 +1,102 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-jetbrains-mono);
+  --font-heading: var(--font-sans);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-text: var(--primary-text);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-panel: var(--panel);
+  --color-raised: var(--raised);
+  --color-console: var(--console);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-notice: var(--notice);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) * 2);
+  --radius-xl: calc(var(--radius) * 2);
+  --radius-2xl: calc(var(--radius) * 2);
+  --radius-3xl: calc(var(--radius) * 2);
+  --radius-4xl: calc(var(--radius) * 2);
+}
+
+:root {
+  /* Technical Parser Minimal (Stitch). Dark only: ParsePass is a diagnostic instrument. */
+  color-scheme: dark;
+
+  /* Tonal surface stepping: canvas → panel (tier 1) → card (tier 2) → raised */
+  --background: #09090b;
+  --console: #09090b;
+  --panel: #121215;
+  --card: #18181b;
+  --raised: #27272a;
+
+  --foreground: #fafafa;
+  --card-foreground: #fafafa;
+  --popover: #1e1e24;
+  --popover-foreground: #fafafa;
+  --muted: #18181b;
+  --muted-foreground: #a1a1aa;
+  --subtle-foreground: #71717a;
+
+  /* One accent: system actions, selection, AI processing */
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-foreground: #ffffff;
+  --primary-text: #c3c0ff;
+  --secondary: #18181b;
+  --secondary-foreground: #f4f4f5;
+  --accent: #27272a;
+  --accent-foreground: #fafafa;
+
+  /* Diagnostic semantics: always icon or label + color, never color alone */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --destructive: #ef4444;
+  --notice: #a1a1aa;
+
+  --border: #27272a;
+  --border-strong: #3f3f46;
+  --input: #27272a;
+  --ring: #4f46e5;
+
+  /* 4px controls, 8px panels. No pills. */
+  --radius: 0.25rem;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-sm leading-normal text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}

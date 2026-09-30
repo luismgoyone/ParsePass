@@ -1,0 +1,22 @@
+{
+  "description": "Turn any resume into a clean, ATS-friendly version and see exactly what an applicant tracking system reads, before and after.",
+  "homepage": "",
+  "topics": [
+    "nextjs",
+    "typescript",
+    "claude-api",
+    "anthropic",
+    "ats",
+    "resume",
+    "resume-parser",
+    "job-search",
+    "pdf",
+    "docx"
+  ],
+  "defaultBranch": "main",
+  "branchProtection": {
+    "requiredChecks": ["checks", "e2e"],
+    "requiredApprovals": 0,
+    "enforceAdmins": true
+  }
+}

@@ -79,3 +79,28 @@ test("the diagnostic page asks for an upload when there is nothing to show", asy
   await page.goto("/diagnostic");
   await expect(page.getByText("Upload a resume first")).toBeVisible();
 });
+
+test("files over 5 MB are rejected before extraction", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Resume file").setInputFiles({
+    name: "huge.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.alloc(5 * 1024 * 1024 + 1),
+  });
+  await expect(page.getByRole("alert").filter({ hasText: "over 5 MB" })).toBeVisible();
+});
+
+test("a damaged PDF gets a readable error", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Resume file").setInputFiles({
+    name: "broken.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.from("%PDF-1.7 not really"),
+  });
+  await expect(page.getByRole("alert").filter({ hasText: "couldn't read that PDF" })).toBeVisible();
+});
+
+test("unknown routes show a 404 page", async ({ page }) => {
+  await page.goto("/nope");
+  await expect(page.getByRole("heading", { name: "This page doesn't exist." })).toBeVisible();
+});

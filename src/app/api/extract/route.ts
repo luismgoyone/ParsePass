@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { extractResume, ExtractionError } from "@/lib/claude/extract-resume";
+import { takeConversion } from "@/lib/rate-limit";
 import { checkHonesty } from "@/lib/resume/honesty";
 
 const MAX_TEXT_CHARS = 40_000;
@@ -33,6 +34,18 @@ export async function POST(request: Request) {
     );
   }
 
+  // Count only well-formed requests against the visitor's daily allowance.
+  const quota = await takeConversion(request);
+  if (quota && !quota.allowed) {
+    const retryAfter = Math.max(1, Math.ceil((quota.reset - Date.now()) / 1000));
+    return Response.json(
+      {
+        error: `You've used today's ${quota.limit} free conversions. Try again in ${formatWait(retryAfter)}.`,
+      },
+      { status: 429, headers: { "Retry-After": String(retryAfter) } },
+    );
+  }
+
   const { text, links } = parsed.data;
   try {
     const { resume, model, usage } = await extractResume(text, links);
@@ -45,4 +58,11 @@ export async function POST(request: Request) {
     console.error("extract: unexpected error", error instanceof Error ? error.name : typeof error);
     return Response.json({ error: "Something went wrong. Try again." }, { status: 500 });
   }
+}
+
+function formatWait(seconds: number): string {
+  const hours = Math.round(seconds / 3600);
+  if (hours >= 1) return `${hours} hour${hours === 1 ? "" : "s"}`;
+  const minutes = Math.max(1, Math.round(seconds / 60));
+  return `${minutes} minute${minutes === 1 ? "" : "s"}`;
 }

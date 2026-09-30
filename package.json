@@ -2,6 +2,7 @@
   "name": "parsepass",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -13,7 +14,8 @@
     "test:e2e": "playwright test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "sync-repo": "bash scripts/sync-repo.sh"
+    "sync-repo": "bash scripts/sync-repo.sh",
+    "fixtures": "tsx scripts/make-fixtures.tsx"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",
@@ -24,6 +26,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "docx": "^9.8.1",
+    "fflate": "^0.8.3",
     "lucide-react": "^1.48.0",
     "mammoth": "^1.13.0",
     "next": "16.3.6",
@@ -49,8 +52,8 @@
     "prettier": "^3.9.9",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
-    "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^5.0.2"
   },
   "packageManager": "pnpm@11.1.3",

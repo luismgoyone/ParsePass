@@ -1,23 +1,54 @@
 "use client";
 
-import { FileUp, FolderOpen, Lock, NotebookText, Terminal } from "lucide-react";
+import {
+  AlertTriangle,
+  FileUp,
+  FolderOpen,
+  Loader2,
+  Lock,
+  NotebookText,
+  Sparkles,
+  Terminal,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 
+import { useSession } from "@/components/session/session-provider";
 import { cn } from "@/lib/utils";
-
-export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
 type Mode = "file" | "text";
 
+export const SAMPLE_RESUME = "/samples/Jordan_Rivera_Designed_Resume.pdf";
+
 export function UploadPanel() {
+  const router = useRouter();
+  const { ingestFile, ingestText, busy, error, clearError } = useSession();
   const [mode, setMode] = useState<Mode>("file");
   const [text, setText] = useState("");
   const [dragging, setDragging] = useState(false);
   const inputId = useId();
 
+  async function handleFile(file: File | undefined) {
+    if (!file || busy) return;
+    if (await ingestFile(file)) router.push("/diagnostic");
+  }
+
+  async function handleText() {
+    if (await ingestText(text)) router.push("/diagnostic");
+  }
+
+  async function trySample() {
+    const res = await fetch(SAMPLE_RESUME);
+    const blob = await res.blob();
+    await handleFile(
+      new File([blob], SAMPLE_RESUME.split("/").pop()!, { type: "application/pdf" }),
+    );
+  }
+
   return (
     <section
       id="upload"
+      aria-busy={busy}
       className="mx-auto w-full max-w-4xl overflow-hidden rounded-lg border border-border bg-panel shadow-2xl shadow-black/40"
     >
       <div className="flex h-12 items-center justify-between border-b border-border bg-card px-4">
@@ -47,18 +78,36 @@ export function UploadPanel() {
             onDrop={(e) => {
               e.preventDefault();
               setDragging(false);
+              void handleFile(e.dataTransfer.files[0]);
             }}
             className={cn(
               "group flex w-full cursor-pointer flex-col items-center rounded-lg border-2 border-dashed border-border bg-console px-6 py-10 text-center transition-colors hover:border-primary",
               dragging && "border-primary bg-primary/5",
+              busy && "pointer-events-none opacity-70",
             )}
           >
-            <input id={inputId} type="file" accept=".pdf,.docx" className="sr-only" />
+            <input
+              id={inputId}
+              type="file"
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              className="sr-only"
+              aria-label="Resume file"
+              onChange={(e) => {
+                void handleFile(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
             <span className="mb-4 flex size-14 items-center justify-center rounded-lg border border-border bg-raised text-primary-text transition-transform group-hover:scale-105">
-              <FileUp aria-hidden className="size-6" />
+              {busy ? (
+                <Loader2 aria-hidden className="size-6 animate-spin" />
+              ) : (
+                <FileUp aria-hidden className="size-6" />
+              )}
             </span>
             <span className="mb-1 flex items-center gap-2">
-              <span className="text-lg font-medium">Drag and drop your resume</span>
+              <span className="text-lg font-medium">
+                {busy ? "Extracting text…" : "Drag and drop your resume"}
+              </span>
               <span className="rounded-sm border border-border bg-card px-2 py-0.5 font-mono text-xs text-muted-foreground">
                 PDF, DOCX
               </span>
@@ -66,9 +115,23 @@ export function UploadPanel() {
             <span className="mb-4 text-muted-foreground">
               Text is extracted in your browser. Max 5 MB.
             </span>
-            <span className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 font-mono text-[13px] text-primary-foreground transition-colors group-hover:bg-primary-hover">
-              <FolderOpen aria-hidden className="size-4" />
-              Browse files
+            <span className="flex flex-wrap items-center justify-center gap-3">
+              <span className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 font-mono text-[13px] text-primary-foreground transition-colors group-hover:bg-primary-hover">
+                <FolderOpen aria-hidden className="size-4" />
+                Browse files
+              </span>
+              <span className="font-mono text-xs text-subtle-foreground">or</span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  void trySample();
+                }}
+                className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 font-mono text-[13px] text-foreground transition-colors hover:border-border-strong hover:bg-raised"
+              >
+                <Sparkles aria-hidden className="size-4 text-primary-text" />
+                Try a sample resume
+              </button>
             </span>
           </label>
         </div>
@@ -96,12 +159,30 @@ export function UploadPanel() {
             </button>
             <button
               type="button"
-              disabled={text.trim().length === 0}
+              disabled={busy || text.trim().length === 0}
+              onClick={() => void handleText()}
               className="rounded-md bg-primary px-4 py-1.5 font-mono text-[13px] text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
             >
               Check this text
             </button>
           </div>
+        </div>
+      )}
+
+      {error && (
+        <div
+          role="alert"
+          className="mx-6 mb-4 flex items-start gap-3 rounded-md border border-l-2 border-destructive/40 border-l-destructive bg-destructive/10 p-3"
+        >
+          <AlertTriangle aria-hidden className="mt-0.5 size-4 shrink-0 text-destructive" />
+          <p className="flex-1">{error}</p>
+          <button
+            type="button"
+            onClick={clearError}
+            className="font-mono text-xs text-muted-foreground hover:text-foreground"
+          >
+            Dismiss
+          </button>
         </div>
       )}
 

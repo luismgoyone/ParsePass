@@ -16,8 +16,8 @@ export function SiteHeader() {
   const reachable: Record<StepId, boolean> = {
     upload: true,
     diagnostic: !!session.doc,
-    review: false,
-    export: false,
+    review: !!session.resume,
+    export: !!session.resume,
   };
 
   return (

@@ -1,0 +1,54 @@
+{
+  "contact": {
+    "name": "JORDAN RIVERA",
+    "headline": "Senior Full-Stack Engineer",
+    "email": "jordan.rivera@example.com",
+    "phone": "+1 (415) 555-0142",
+    "location": "",
+    "links": ["https://www.linkedin.com/in/jordan-rivera-dev"]
+  },
+  "summary": "Full-stack engineer with 8 years of experience building web products used by millions of people. I care about fast pages, clear code and teams that ship.",
+  "experience": [
+    {
+      "title": "Senior Software Engineer",
+      "company": "Brightline Health",
+      "location": "Portland, OR",
+      "start": "04/21",
+      "end": "Present",
+      "bullets": [
+        "Led the rebuild of the patient portal in Next.js, cutting load time by 40%.",
+        "Designed a billing API that processes 2 million claims a month.",
+        "Mentored 4 engineers through their first year on the team."
+      ]
+    },
+    {
+      "title": "Software Engineer",
+      "company": "Cascade Commerce",
+      "location": "Seattle, WA",
+      "start": "Jun 2016",
+      "end": "Mar 2021",
+      "bullets": [
+        "Built the checkout flow in React, raising conversion by 12%.",
+        "Moved nightly batch jobs to AWS Lambda, saving $30,000 a year."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "degree": "B.S. Computer Science",
+      "school": "University of Oregon",
+      "location": "",
+      "start": "2012",
+      "end": "2016",
+      "details": []
+    }
+  ],
+  "skills": [
+    {
+      "category": "Skills",
+      "items": ["TypeScript", "React and Next.js", "Node.js", "PostgreSQL", "AWS"]
+    }
+  ],
+  "projects": [],
+  "certifications": [{ "name": "AWS Certified Developer", "issuer": "", "date": "" }]
+}

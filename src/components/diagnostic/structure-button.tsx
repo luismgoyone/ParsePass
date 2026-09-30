@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 
 import { useSession } from "@/components/session/session-provider";
 
-/** Hands the extracted text to Claude, then opens the review screen. */
+/** Hands the extracted text to the model, then opens the review screen. */
 export function StructureButton() {
   const router = useRouter();
-  const { structure, structuring, error, resume, doc } = useSession();
+  const { structure, structuring, error, resume, doc, ai } = useSession();
   const empty = !doc || doc.sourceText.replace(/\s/g, "").length < 50;
 
   return (
@@ -40,12 +40,12 @@ export function StructureButton() {
         {structuring ? (
           <>
             <Loader2 aria-hidden className="size-4 animate-spin" />
-            Claude is structuring your resume…
+            {ai.label} is structuring your resume…
           </>
         ) : (
           <>
             <Sparkles aria-hidden className="size-4" />
-            {resume ? "Re-run Claude extraction" : "Continue: structure with Claude"}
+            {resume ? `Re-run ${ai.label} extraction` : `Continue: structure with ${ai.label}`}
             <ArrowRight aria-hidden className="size-4" />
           </>
         )}

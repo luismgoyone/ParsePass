@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { extractResume, ExtractionError } from "@/lib/claude/extract-resume";
+import { extractResume, ExtractionError } from "@/lib/extraction";
 import { takeConversion } from "@/lib/rate-limit";
 import { checkHonesty } from "@/lib/resume/honesty";
 
@@ -18,7 +18,7 @@ const RequestSchema = z.object({
     .default([]),
 });
 
-/** Structure resume text with Claude, then check the result against the source. Stores nothing. */
+/** Structure resume text with the configured model, then check the result against the source. Stores nothing. */
 export async function POST(request: Request) {
   let body: unknown;
   try {

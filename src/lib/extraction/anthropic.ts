@@ -4,28 +4,13 @@ import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 
 import { optionalEnv } from "@/lib/env";
-import { ResumeSchema, type Resume } from "@/lib/resume/schema";
+import { ResumeSchema } from "@/lib/resume/schema";
 
 import { EXTRACTION_SYSTEM_PROMPT, extractionUserMessage } from "./prompt";
+import { ExtractionError, type ExtractionResult, type Link } from "./types";
 
 /** The spec calls for a current Sonnet model for extraction. Override with ANTHROPIC_MODEL. */
 export const DEFAULT_MODEL = "claude-sonnet-5-5";
-
-export class ExtractionError extends Error {
-  constructor(
-    message: string,
-    readonly status: number,
-  ) {
-    super(message);
-    this.name = "ExtractionError";
-  }
-}
-
-export interface ExtractionResult {
-  resume: Resume;
-  model: string;
-  usage: { inputTokens: number; outputTokens: number };
-}
 
 let client: Anthropic | null = null;
 function getClient(): Anthropic {
@@ -38,10 +23,7 @@ function getClient(): Anthropic {
  * Structure resume text with Claude. Structured outputs constrain the response to
  * ResumeSchema's JSON schema; we still validate it with Zod before use.
  */
-export async function extractResume(
-  text: string,
-  links: { url: string; text: string }[],
-): Promise<ExtractionResult> {
+export async function extractWithClaude(text: string, links: Link[]): Promise<ExtractionResult> {
   if (!optionalEnv("ANTHROPIC_API_KEY")) {
     throw new ExtractionError(
       "Extraction isn't configured on this server (missing ANTHROPIC_API_KEY).",

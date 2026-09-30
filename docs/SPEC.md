@@ -190,3 +190,8 @@ fake latency numbers). The app follows the mockups' layout but keeps copy true t
   converts dates to "Mon YYYY" itself (`src/lib/ats/dates.ts`). That keeps the honesty check
   (`src/lib/resume/honesty.ts`) a plain match against the source text. The check re-runs on
   every edit, so anything a user adds is visible too.
+- **Gemini as a free alternative for evaluation.** `src/lib/extraction/` has two providers behind
+  one `extractResume()`: Claude (default) and Gemini's free tier, chosen by which key is set or by
+  `EXTRACTION_PROVIDER`. Both use the same prompt, JSON schema, Zod validation and honesty check,
+  so `pnpm eval:extract` compares them fairly. The UI names the active provider, and the privacy
+  note warns that Google may use free-tier content while Gemini is active.

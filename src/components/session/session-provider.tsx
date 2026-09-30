@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { ExtractError } from "@/lib/ats/errors";
+import type { AiInfo } from "@/lib/extraction/provider";
 import type { Diagnosis, ExtractedDoc } from "@/lib/ats/types";
 import type { Resume } from "@/lib/resume/schema";
 
@@ -20,12 +21,14 @@ export interface SessionState {
   diagnosis: Diagnosis | null;
   /** The resume being edited. */
   resume: Resume | null;
-  /** Claude's untouched extraction, to revert edits and to build the change log. */
+  /** The model's untouched extraction, to revert edits and to build the change log. */
   extracted: Resume | null;
   model: string | null;
 }
 
 interface SessionContextValue extends SessionState {
+  /** Which model provider structures resumes, for UI copy. */
+  ai: AiInfo;
   /** False until sessionStorage has been read, so pages don't flash an empty state. */
   ready: boolean;
   source: SourcePreview | null;
@@ -33,7 +36,7 @@ interface SessionContextValue extends SessionState {
   error: string | null;
   ingestFile: (file: File) => Promise<boolean>;
   ingestText: (text: string) => Promise<boolean>;
-  /** Send the extracted text to Claude and store the structured resume. */
+  /** Send the extracted text to the model and store the structured resume. */
   structure: () => Promise<boolean>;
   structuring: boolean;
   setResume: (resume: Resume) => void;
@@ -53,7 +56,7 @@ const EMPTY: SessionState = {
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 
-export function SessionProvider({ children }: { children: React.ReactNode }) {
+export function SessionProvider({ ai, children }: { ai: AiInfo; children: React.ReactNode }) {
   const [state, setState] = useState<SessionState>(EMPTY);
   const [ready, setReady] = useState(false);
   const [source, setSource] = useState<SourcePreview | null>(null);
@@ -147,7 +150,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         error?: string;
       };
       if (!res.ok || !data.resume) {
-        setError(data.error ?? "Claude couldn't structure this resume. Try again.");
+        setError(data.error ?? `${ai.label} couldn't structure this resume. Try again.`);
         return false;
       }
       setState((s) => ({
@@ -163,11 +166,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setStructuring(false);
     }
-  }, [state.doc]);
+  }, [state.doc, ai.label]);
 
   const value = useMemo<SessionContextValue>(
     () => ({
       ...state,
+      ai,
       ready,
       source,
       busy,
@@ -184,7 +188,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         setSource(null);
       },
     }),
-    [state, ready, source, busy, error, ingestFile, ingestText, structure, structuring],
+    [state, ai, ready, source, busy, error, ingestFile, ingestText, structure, structuring],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

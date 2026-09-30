@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, JetBrains_Mono } from "next/font/google";
 
 import { SessionProvider } from "@/components/session/session-provider";
+import { aiInfo } from "@/lib/extraction/provider";
 import { SiteFooter } from "@/components/shell/site-footer";
 import { SiteHeader } from "@/components/shell/site-header";
 
@@ -31,10 +32,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${jetbrainsMono.variable} dark h-full antialiased`}
     >
       <body className="flex min-h-full flex-col selection:bg-primary selection:text-primary-foreground">
-        <SessionProvider>
+        <SessionProvider ai={aiInfo()}>
           <SiteHeader />
           <div className="flex flex-1 flex-col">{children}</div>
-          <SiteFooter />
+          <SiteFooter privacy={aiInfo().privacy} />
         </SessionProvider>
       </body>
     </html>

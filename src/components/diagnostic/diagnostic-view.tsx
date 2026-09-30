@@ -24,7 +24,7 @@ import { SourcePreview } from "./source-preview";
 const ENGINE = { pdf: "pdf.js (unpdf)", docx: "mammoth", text: "plain text" } as const;
 
 export function DiagnosticView({ next }: { next?: React.ReactNode }) {
-  const { ready, doc, diagnosis, source } = useSession();
+  const { ready, doc, diagnosis, source, ai } = useSession();
   const [selectedRule, setSelectedRule] = useState<string | null>(null);
 
   if (!ready) return <Loading />;
@@ -131,7 +131,7 @@ export function DiagnosticView({ next }: { next?: React.ReactNode }) {
 
       <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-border bg-panel/95 px-4 py-3 backdrop-blur md:px-6">
         <p className="text-muted-foreground">
-          <span className="font-mono text-xs text-primary-text">Next:</span> Claude restructures
+          <span className="font-mono text-xs text-primary-text">Next:</span> {ai.label} restructures
           your resume into standard sections. You review every field before exporting.
         </p>
         {next}

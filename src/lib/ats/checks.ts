@@ -287,7 +287,8 @@ function checkSections(doc: ExtractedDoc, issues: AtsIssue[]) {
 function checkDates(doc: ExtractedDoc, issues: AtsIssue[]) {
   const byFormat = new Map<DateFormat, { examples: Set<string>; lines: Set<number> }>();
   doc.lines.forEach((l, i) => {
-    for (const d of findDates(l.text)) {
+    // Year-only ranges ("2012 – 2016") are fine next to month dates: often only the year is known.
+    for (const d of findDates(l.text).filter((d) => d.format !== "YYYY")) {
       const entry = byFormat.get(d.format) ?? { examples: new Set(), lines: new Set() };
       entry.examples.add(d.text);
       entry.lines.add(i);

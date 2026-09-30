@@ -8,6 +8,9 @@ import jordan from "../fixtures/jordan-resume.json";
 /** A stand-in for the Gemini generateContent endpoint. */
 let server: Server;
 let reply: { status: number; body: unknown };
+/** Replies to send before falling back to `reply`, one per request. */
+let queue: { status: number; body: unknown }[] = [];
+let requests = 0;
 let last: { url?: string; body: Record<string, unknown> } | null = null;
 
 beforeAll(async () => {
@@ -16,15 +19,18 @@ beforeAll(async () => {
     req.on("data", (c) => (body += c));
     req.on("end", () => {
       last = { url: req.url, body: JSON.parse(body) };
+      requests++;
+      const next = queue.shift() ?? reply;
       res
-        .writeHead(reply.status, { "content-type": "application/json" })
-        .end(JSON.stringify(reply.body));
+        .writeHead(next.status, { "content-type": "application/json" })
+        .end(JSON.stringify(next.body));
     });
   });
   await new Promise<void>((resolve) => server.listen(0, resolve));
   vi.stubEnv("GEMINI_BASE_URL", `http://localhost:${(server.address() as AddressInfo).port}`);
   vi.stubEnv("GEMINI_API_KEY", "test");
   vi.stubEnv("GEMINI_MODEL", "");
+  vi.stubEnv("GEMINI_RETRY_DELAY_MS", "0");
 });
 
 afterAll(() => {
@@ -42,6 +48,8 @@ const ok = (text: string, finishReason = "STOP") => ({
 
 beforeEach(() => {
   reply = ok(JSON.stringify(jordan));
+  queue = [];
+  requests = 0;
   last = null;
 });
 
@@ -51,7 +59,7 @@ describe("extractWithGemini", () => {
     const result = await extractWithGemini("JORDAN RIVERA ...", []);
     expect(result.resume.experience[1].company).toBe("Cascade Commerce");
     expect(result).toMatchObject({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.5-flash",
       usage: { inputTokens: 900, outputTokens: 400 },
     });
   });
@@ -59,7 +67,7 @@ describe("extractWithGemini", () => {
   it("sends the shared prompt and a JSON schema built from the Zod schema", async () => {
     const { extractWithGemini } = await import("@/lib/extraction/gemini");
     await extractWithGemini("JORDAN RIVERA ...", [{ url: "https://x.dev", text: "Site" }]);
-    expect(last?.url).toContain("gemini-2.5-flash:generateContent");
+    expect(last?.url).toContain("gemini-3.5-flash:generateContent");
     const config = last!.body.generationConfig as Record<string, unknown>;
     expect(config.responseMimeType).toBe("application/json");
     expect(config.temperature).toBe(0);
@@ -110,6 +118,32 @@ describe("extractWithGemini", () => {
     await expect(extractWithGemini("text", [])).rejects.toMatchObject({
       message: expect.stringContaining("GEMINI_MODEL"),
     });
+  });
+
+  it("retries once when Gemini is briefly overloaded", async () => {
+    queue = [
+      {
+        status: 503,
+        body: { error: { code: 503, message: "high demand", status: "UNAVAILABLE" } },
+      },
+    ];
+    const { extractWithGemini } = await import("@/lib/extraction/gemini");
+    const result = await extractWithGemini("text", []);
+    expect(result.resume.contact.name).toBe("JORDAN RIVERA");
+    expect(requests).toBe(2);
+  });
+
+  it("reports sustained overload clearly", async () => {
+    reply = {
+      status: 503,
+      body: { error: { code: 503, message: "high demand", status: "UNAVAILABLE" } },
+    };
+    const { extractWithGemini } = await import("@/lib/extraction/gemini");
+    await expect(extractWithGemini("text", [])).rejects.toMatchObject({
+      status: 503,
+      message: expect.stringContaining("overloaded"),
+    });
+    expect(requests).toBe(2);
   });
 
   it("treats a safety block as unprocessable", async () => {

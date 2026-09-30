@@ -9,8 +9,12 @@ import { ResumeSchema } from "@/lib/resume/schema";
 import { EXTRACTION_SYSTEM_PROMPT, extractionUserMessage } from "./prompt";
 import { ExtractionError, type ExtractionResult, type Link } from "./types";
 
-/** A free-tier Gemini model. Override with GEMINI_MODEL if Google retires it. */
-export const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
+/**
+ * A free-tier Gemini model with structured output. Checked against a new AI Studio key on
+ * 2026-10-01: 2.5 models are closed to new users and newer Flash models have no free quota.
+ * Override with GEMINI_MODEL when Google moves on.
+ */
+export const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash";
 
 let client: GoogleGenAI | null = null;
 function getClient(): GoogleGenAI {
@@ -33,9 +37,8 @@ function responseSchema() {
 export async function extractWithGemini(text: string, links: Link[]): Promise<ExtractionResult> {
   const model = optionalEnv("GEMINI_MODEL") ?? DEFAULT_GEMINI_MODEL;
 
-  let response;
-  try {
-    response = await getClient().models.generateContent({
+  const request = () =>
+    getClient().models.generateContent({
       model,
       contents: extractionUserMessage(text, links),
       config: {
@@ -47,9 +50,23 @@ export async function extractWithGemini(text: string, links: Link[]): Promise<Ex
         maxOutputTokens: 16000,
       },
     });
+
+  let response;
+  try {
+    try {
+      response = await request();
+    } catch (error) {
+      // Free-tier models return 503 "high demand" in short spikes; one retry usually clears it.
+      if (!(error instanceof ApiError && error.status === 503)) throw error;
+      await new Promise((r) => setTimeout(r, retryDelayMs()));
+      response = await request();
+    }
   } catch (error) {
     if (error instanceof ApiError) {
       console.error("extract: Gemini API error", error.status);
+      if (error.status === 503) {
+        throw new ExtractionError("Gemini is overloaded right now. Try again in a minute.", 503);
+      }
       if (error.status === 429) {
         throw new ExtractionError(
           "The free Gemini quota is used up for now. Try again in a minute.",
@@ -103,4 +120,8 @@ export async function extractWithGemini(text: string, links: Link[]): Promise<Ex
     throw new ExtractionError("Gemini returned an unexpected result. Try again.", 502);
   }
   return { resume: parsed.data, model, usage };
+}
+
+function retryDelayMs(): number {
+  return Number(optionalEnv("GEMINI_RETRY_DELAY_MS") ?? 2000);
 }

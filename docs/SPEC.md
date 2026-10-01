@@ -68,6 +68,9 @@ The exported file follows these rules every time, and the issue checker flags th
 - Standard fonts (Arial, Calibri, or similar) at 10 to 12 pt.
 - One date format throughout, such as "Mar 2025 – Present".
 - Job title, company, and dates on their own lines for each role.
+  _(Implemented as: title on its own line, then "Company | Location | Dates" on the next. Three
+  lines per role pushed typical resumes onto a second page; parsers read the delimited line fine.)_
+- Fits on one page when possible: 10 pt first, then 9.5 pt with tighter spacing only if that saves a page.
 - Plain round bullets, no icons or emoji.
 - Real text in the PDF (selectable, not an image), and links written out in full.
 - File name like `Firstname_Lastname_Resume.pdf`.

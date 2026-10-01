@@ -17,7 +17,11 @@ export default defineConfig({
     video: "on",
     screenshot: "only-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    { name: "chromium", use: { ...devices["Desktop Chrome"] }, testIgnore: /mobile\.spec\.ts/ },
+    // Pixel 7 runs on Chromium, so CI needs no extra browser.
+    { name: "mobile", use: { ...devices["Pixel 7"] }, testMatch: /mobile\.spec\.ts/ },
+  ],
   webServer: [
     {
       command: "node tests/e2e/support/mock-anthropic.mts",

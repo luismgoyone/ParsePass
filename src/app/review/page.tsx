@@ -12,7 +12,7 @@ export default function ReviewPage() {
       next={
         <Link
           href="/export"
-          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 font-mono text-[13px] text-primary-foreground transition-colors hover:bg-primary-hover"
+          className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 font-mono text-[13px] text-primary-foreground transition-colors hover:bg-primary-hover sm:min-h-0 sm:flex-none"
         >
           Continue to export
           <ArrowRight aria-hidden className="size-4" />

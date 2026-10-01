@@ -12,7 +12,7 @@ export function StructureButton() {
   const empty = !doc || doc.sourceText.replace(/\s/g, "").length < 50;
 
   return (
-    <div className="flex flex-wrap items-center justify-end gap-3">
+    <div className="flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">
       {error && (
         <p role="alert" className="flex items-center gap-1.5 text-[13px] text-red-300">
           <AlertTriangle aria-hidden className="size-4 text-destructive" />
@@ -23,7 +23,7 @@ export function StructureButton() {
         <button
           type="button"
           onClick={() => router.push("/review")}
-          className="rounded-md border border-border bg-card px-4 py-2 font-mono text-[13px] hover:border-border-strong hover:bg-raised"
+          className="flex-1 rounded-md border border-border bg-card px-4 py-2.5 font-mono text-[13px] hover:border-border-strong hover:bg-raised sm:flex-none sm:py-2"
         >
           Back to my edits
         </button>
@@ -35,7 +35,7 @@ export function StructureButton() {
         onClick={async () => {
           if (await structure()) router.push("/review");
         }}
-        className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 font-mono text-[13px] text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 font-mono text-[13px] text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60 sm:w-auto sm:py-2"
       >
         {structuring ? (
           <>

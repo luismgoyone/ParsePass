@@ -124,13 +124,24 @@ export function ListEditor({
                 <span aria-hidden className="text-subtle-foreground">
                   •
                 </span>
-                <input
+                {/* Grows to fit, so long bullets are readable on a phone. One line per entry. */}
+                <textarea
+                  rows={1}
                   aria-label={`${label} ${i + 1}`}
                   data-path={`${path}.${i}`}
                   value={item}
                   placeholder={placeholder}
-                  onChange={(e) => onChange(items.map((x, j) => (j === i ? e.target.value : x)))}
-                  className={cn(INPUT, "py-1.5", flag && "border-warning")}
+                  onChange={(e) =>
+                    onChange(
+                      items.map((x, j) => (j === i ? e.target.value.replace(/\n/g, " ") : x)),
+                    )
+                  }
+                  onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
+                  className={cn(
+                    INPUT,
+                    "field-sizing-content min-w-0 flex-1 resize-none py-1.5",
+                    flag && "border-warning",
+                  )}
                 />
                 <IconButton
                   label={`Remove ${label.toLowerCase()} ${i + 1}`}
@@ -169,7 +180,7 @@ export function IconButton({
       aria-label={label}
       title={label}
       onClick={onClick}
-      className="shrink-0 rounded-sm p-1 text-subtle-foreground transition-colors hover:bg-raised hover:text-foreground"
+      className="shrink-0 rounded-sm p-3 text-subtle-foreground transition-colors hover:bg-raised hover:text-foreground sm:p-1"
     >
       {children}
     </button>
@@ -187,7 +198,7 @@ export function AddButton({
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex w-fit items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 font-mono text-xs text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+      className="inline-flex w-fit items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 font-mono text-xs text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground max-sm:py-2"
     >
       <Plus aria-hidden className="size-3.5" />
       {children}
@@ -213,7 +224,7 @@ export function SectionCard({
   return (
     <section
       aria-labelledby={`section-${n}`}
-      className="rounded-lg border border-border bg-panel p-5"
+      className="min-w-0 rounded-lg border border-border bg-panel p-4 sm:p-5"
     >
       <header className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
         <h2 id={`section-${n}`} className="flex items-center gap-2 text-lg font-medium">

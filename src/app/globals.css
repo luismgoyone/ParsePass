@@ -100,3 +100,15 @@
     @apply font-sans;
   }
 }
+
+/*
+ * iOS Safari zooms the page when a focused field's text is under 16px. On phones, give every
+ * form field 16px text. Unlayered, so it wins over Tailwind's text-size utilities.
+ */
+@media (max-width: 639px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}

@@ -37,23 +37,25 @@ export function DiagnosticView({ next }: { next?: React.ReactNode }) {
   return (
     <main className="flex flex-1 flex-col">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-2 md:px-6">
-        <div className="flex items-center gap-3">
-          <span className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 font-mono text-xs">
-            <FileText aria-hidden className="size-3.5 text-muted-foreground" />
-            {doc.fileName}
+        <div className="flex max-w-full min-w-0 items-center gap-3">
+          <span className="inline-flex min-w-0 items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 font-mono text-xs">
+            <FileText aria-hidden className="size-3.5 shrink-0 text-muted-foreground" />
+            <span className="truncate" title={doc.fileName}>
+              {doc.fileName}
+            </span>
             {source && source.kind !== "text" && (
-              <span className="text-subtle-foreground">({formatBytes(source.size)})</span>
+              <span className="shrink-0 text-subtle-foreground">({formatBytes(source.size)})</span>
             )}
           </span>
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 font-mono text-xs text-muted-foreground hover:text-foreground"
+            className="inline-flex shrink-0 items-center gap-1.5 py-2 font-mono text-xs text-muted-foreground hover:text-foreground"
           >
             <RefreshCw aria-hidden className="size-3.5" />
             Replace file
           </Link>
         </div>
-        <dl className="flex items-center gap-4 font-mono text-xs text-muted-foreground">
+        <dl className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs text-muted-foreground">
           <Meta label="Engine" value={ENGINE[doc.kind]} dot />
           <Meta label="Lines" value={String(doc.lines.length)} />
           <Meta label="Characters" value={chars.toLocaleString()} />
@@ -103,7 +105,7 @@ export function DiagnosticView({ next }: { next?: React.ReactNode }) {
             ) : null
           }
         >
-          <div className="max-h-[70vh] overflow-auto bg-zinc-800/40">
+          <div className="overflow-auto bg-zinc-800/40 lg:max-h-[70vh]">
             <SourcePreview source={source} doc={doc} issues={issues} selectedRule={selectedRule} />
           </div>
         </Pane>
@@ -123,14 +125,15 @@ export function DiagnosticView({ next }: { next?: React.ReactNode }) {
             lines={doc.lines}
             issues={issues}
             selectedRule={selectedRule}
-            className="max-h-[70vh]"
+            className="lg:max-h-[70vh]"
             emptyMessage="No selectable text. An ATS sees an empty resume."
           />
         </Pane>
       </div>
 
       <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-border bg-panel/95 px-4 py-3 backdrop-blur md:px-6">
-        <p className="text-muted-foreground">
+        {/* Phones get just the action: the bar shouldn't cover a third of the screen. */}
+        <p className="hidden text-muted-foreground sm:block">
           <span className="font-mono text-xs text-primary-text">Next:</span> {ai.label} restructures
           your resume into standard sections. You review every field before exporting.
         </p>

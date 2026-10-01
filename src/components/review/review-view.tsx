@@ -149,7 +149,7 @@ export function ReviewView({ next }: { next?: React.ReactNode }) {
           >
             <div className="flex flex-col gap-4">
               {resume.experience.map((job, i) => (
-                <div key={i} className="rounded-md border border-border bg-card p-4">
+                <div key={i} className="rounded-md border border-border bg-card p-3 sm:p-4">
                   <div className="mb-3 flex items-center justify-between">
                     <span className="font-mono text-xs text-subtle-foreground">ROLE {i + 1}</span>
                     <IconButton
@@ -263,7 +263,7 @@ export function ReviewView({ next }: { next?: React.ReactNode }) {
           >
             <div className="flex flex-col gap-4">
               {resume.education.map((ed, i) => (
-                <div key={i} className="rounded-md border border-border bg-card p-4">
+                <div key={i} className="rounded-md border border-border bg-card p-3 sm:p-4">
                   <div className="mb-3 flex items-center justify-between">
                     <span className="font-mono text-xs text-subtle-foreground">
                       EDUCATION {i + 1}
@@ -336,7 +336,7 @@ export function ReviewView({ next }: { next?: React.ReactNode }) {
           >
             <div className="flex flex-col gap-4">
               {resume.projects.map((p, i) => (
-                <div key={i} className="rounded-md border border-border bg-card p-4">
+                <div key={i} className="rounded-md border border-border bg-card p-3 sm:p-4">
                   <div className="mb-3 flex items-start gap-3">
                     <div className="grid flex-1 gap-3 md:grid-cols-2">
                       <Field
@@ -445,7 +445,7 @@ export function ReviewView({ next }: { next?: React.ReactNode }) {
       </div>
 
       <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-border bg-panel/95 px-4 py-3 backdrop-blur md:px-6">
-        <p className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
+        <p className="hidden items-center gap-2 font-mono text-xs text-muted-foreground sm:flex">
           <span
             aria-hidden
             className={`size-2 rounded-full ${report.flags.length ? "bg-warning" : "bg-success"}`}
@@ -454,15 +454,17 @@ export function ReviewView({ next }: { next?: React.ReactNode }) {
             ? `${report.flags.length} field${report.flags.length === 1 ? "" : "s"} not found in your original`
             : "Every checked field matches your original"}
         </p>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex w-full items-center gap-3 sm:w-auto">
           <button
             type="button"
             disabled={!edited}
             onClick={revertResume}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-4 py-2 font-mono text-[13px] hover:border-border-strong hover:bg-raised disabled:opacity-50"
+            aria-label={`Revert to ${ai.label}'s extraction`}
+            title={`Revert to ${ai.label}'s extraction`}
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 font-mono text-[13px] hover:border-border-strong hover:bg-raised disabled:opacity-50 sm:min-h-0 sm:px-4"
           >
             <RotateCcw aria-hidden className="size-4" />
-            Revert to {ai.label}&apos;s extraction
+            <span className="hidden sm:inline">Revert to {ai.label}&apos;s extraction</span>
           </button>
           {next}
         </div>
@@ -538,7 +540,7 @@ function SkillGroupEditor({
     setDraft("");
   };
   return (
-    <div className="rounded-md border border-border bg-card p-4">
+    <div className="rounded-md border border-border bg-card p-3 sm:p-4">
       <div className="mb-3 flex items-end gap-3">
         <Field
           className="max-w-xs flex-1"
@@ -573,7 +575,7 @@ function SkillGroupEditor({
                 type="button"
                 aria-label={`Remove ${skill}`}
                 onClick={() => onItems(items.filter((_, k) => k !== j))}
-                className="rounded-sm p-0.5 text-subtle-foreground hover:bg-raised hover:text-foreground"
+                className="rounded-sm p-1.5 text-subtle-foreground hover:bg-raised hover:text-foreground sm:p-0.5"
               >
                 <X className="size-3" />
               </button>

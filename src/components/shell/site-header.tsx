@@ -78,6 +78,36 @@ export function SiteHeader() {
           GitHub
         </a>
       </div>
+
+      {/* Phones: the same steps, four across, under the logo bar. */}
+      <nav aria-label="Steps" className="grid grid-cols-4 border-t border-border md:hidden">
+        {STEPS.map((step, i) => {
+          const done = i < current && reachable[step.id];
+          const active = i === current;
+          const className = cn(
+            "flex min-h-11 items-center justify-center gap-1.5 border-b-2 border-transparent font-mono text-xs",
+            active && "border-primary text-primary-text",
+            done && "text-success",
+            !active && !done && "text-muted-foreground",
+          );
+          return reachable[step.id] || active ? (
+            <Link
+              key={step.id}
+              href={step.href}
+              aria-current={active ? "step" : undefined}
+              className={className}
+            >
+              <StepMarker index={i} active={active} done={done} />
+              {step.short}
+            </Link>
+          ) : (
+            <span key={step.id} aria-disabled className={cn(className, "text-subtle-foreground")}>
+              <StepMarker index={i} active={false} done={false} />
+              {step.short}
+            </span>
+          );
+        })}
+      </nav>
     </header>
   );
 }

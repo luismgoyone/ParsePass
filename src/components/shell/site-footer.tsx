@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function SiteFooter({ privacy }: { privacy: string }) {
   return (
-    <footer className="border-t border-border px-4 py-5 md:px-6">
+    <footer className="border-t border-border px-page py-5">
       <div className="flex flex-col gap-2 font-mono text-xs text-subtle-foreground md:flex-row md:items-center md:justify-between">
         <p>
           <span className="font-sans text-sm font-semibold text-foreground">ParsePass</span>

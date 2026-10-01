@@ -124,5 +124,22 @@ export function classifyHeading(text: string): HeadingMatch | null {
   for (const [section, names] of Object.entries(NON_STANDARD) as [SectionId, string[]][]) {
     if (names.includes(norm)) return { section, standard: false };
   }
+  // Variations on a standard name still map cleanly: "Skills & Technologies",
+  // "Relevant Work Experience", "Education and Certifications". The first keyword wins.
+  for (const word of norm.split(" ")) {
+    const section = KEYWORDS[word];
+    if (section) return { section, standard: true };
+  }
   return null;
 }
+
+/** Words that make a heading unambiguous to an ATS, wherever they appear in it. */
+const KEYWORDS: Record<string, SectionId> = {
+  summary: "summary",
+  experience: "experience",
+  education: "education",
+  skills: "skills",
+  projects: "projects",
+  certifications: "certifications",
+  certificates: "certifications",
+};

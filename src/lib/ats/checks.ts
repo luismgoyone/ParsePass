@@ -288,7 +288,9 @@ function checkDates(doc: ExtractedDoc, issues: AtsIssue[]) {
   const byFormat = new Map<DateFormat, { examples: Set<string>; lines: Set<number> }>();
   doc.lines.forEach((l, i) => {
     // Year-only ranges ("2012 – 2016") are fine next to month dates: often only the year is known.
-    for (const d of findDates(l.text).filter((d) => d.format !== "YYYY")) {
+    // "May 2022" fits both "Mar 2025" and "March 2025", so it never counts as a format of its own.
+    const counted = findDates(l.text).filter((d) => d.format !== "YYYY" && !/^may\b/i.test(d.text));
+    for (const d of counted) {
       const entry = byFormat.get(d.format) ?? { examples: new Set(), lines: new Set() };
       entry.examples.add(d.text);
       entry.lines.add(i);

@@ -39,6 +39,18 @@ describe("diagnose (plain text)", () => {
     expect(check(`${BASE}\n© 2025`).issues).toEqual([]);
   });
 
+  it("passes a resume headed “Skills & Technologies” with no issues", () => {
+    expect(
+      check(BASE.replace("Skills\nTypeScript", "SKILLS & TECHNOLOGIES\nTypeScript")).issues,
+    ).toEqual([]);
+  });
+
+  it("doesn't treat May as a different date format, with short or full month names", () => {
+    expect(check(`${BASE}\nIntern\nGlobex\nJan 2019 – May 2019`).issues).toEqual([]);
+    const full = BASE.replace("Mar 2020 – Present", "March 2020 – Present");
+    expect(check(`${full}\nIntern\nGlobex\nJanuary 2019 – May 2019`).issues).toEqual([]);
+  });
+
   it("flags mixed date formats as a notice", () => {
     const d = check(`${BASE}\nIntern\nGlobex\n06/2018 – 08/2018`);
     expect(d.issues[0]).toMatchObject({ rule: "DAT-01", severity: "notice" });
@@ -68,6 +80,20 @@ describe("section headings", () => {
     });
     expect(classifyHeading("Tech Stack:")).toEqual({ section: "skills", standard: false });
     expect(classifyHeading("Senior Engineer")).toBeNull();
+  });
+
+  it("accepts variations on a standard name", () => {
+    expect(classifyHeading("SKILLS & TECHNOLOGIES")).toEqual({ section: "skills", standard: true });
+    expect(classifyHeading("Relevant Work Experience")).toEqual({
+      section: "experience",
+      standard: true,
+    });
+    expect(classifyHeading("Education and Certifications")).toEqual({
+      section: "education",
+      standard: true,
+    });
+    // Creative names are still flagged.
+    expect(classifyHeading("My Toolbox")).toEqual({ section: "skills", standard: false });
   });
 
   it("only treats short, heading-shaped text as a heading", () => {

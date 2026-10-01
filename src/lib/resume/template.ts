@@ -7,13 +7,15 @@ import type { Resume } from "./schema";
  * blocks and nothing else, so `expectedText(blocks)` is exactly what a parser should read back.
  *
  * Rules (docs/SPEC.md): single column, contact details in the body, standard headings, one date
- * format, title / company / dates on their own lines, plain round bullets, links in full.
+ * format, job title on its own line with company and dates on the next, plain round bullets,
+ * links in full.
  */
 export type Block =
   | { kind: "name"; text: string }
   | { kind: "contact"; text: string }
   | { kind: "heading"; text: string }
-  | { kind: "title"; text: string }
+  /** `meta` (a project link) is written on the same line, after the bold title. */
+  | { kind: "title"; text: string; meta?: string }
   | { kind: "line"; text: string }
   | { kind: "paragraph"; text: string }
   | { kind: "bullet"; text: string };
@@ -48,9 +50,15 @@ export function buildBlocks(resume: Resume): Block[] {
   if (jobs.length) {
     push("heading", "Experience");
     for (const job of jobs) {
+      // Title on its own line; company, location and dates on the next, clearly delimited.
       push("title", job.title);
-      push("line", [job.company, job.location].map(tidy).filter(Boolean).join(SEPARATOR));
-      push("line", formatRange(job.start, job.end));
+      push(
+        "line",
+        [job.company, job.location, formatRange(job.start, job.end)]
+          .map(tidy)
+          .filter(Boolean)
+          .join(SEPARATOR),
+      );
       job.bullets.forEach((b) => push("bullet", stripBullet(b)));
     }
   }
@@ -60,9 +68,13 @@ export function buildBlocks(resume: Resume): Block[] {
     push("heading", "Education");
     for (const ed of schools) {
       push("title", ed.degree || ed.school);
-      if (ed.degree)
-        push("line", [ed.school, ed.location].map(tidy).filter(Boolean).join(SEPARATOR));
-      push("line", formatRange(ed.start, ed.end));
+      push(
+        "line",
+        [ed.degree ? ed.school : "", ed.location, formatRange(ed.start, ed.end)]
+          .map(tidy)
+          .filter(Boolean)
+          .join(SEPARATOR),
+      );
       ed.details.forEach((d) => push("bullet", stripBullet(d)));
     }
   }
@@ -81,8 +93,12 @@ export function buildBlocks(resume: Resume): Block[] {
   if (projects.length) {
     push("heading", "Projects");
     for (const p of projects) {
-      push("title", p.name);
-      if (tidy(p.link)) push("line", fullLink(p.link));
+      // Name and link share a line to save space; the link is still written out in full.
+      blocks.push({
+        kind: "title",
+        text: tidy(p.name),
+        ...(tidy(p.link) ? { meta: fullLink(p.link) } : {}),
+      });
       p.bullets.forEach((b) => push("bullet", stripBullet(b)));
     }
   }
@@ -113,7 +129,9 @@ export function expectedText(blocks: Block[]): string {
 
 /** Headings render in capitals; everything else as the user wrote it. */
 export function displayText(block: Block): string {
-  return block.kind === "heading" ? block.text.toUpperCase() : block.text;
+  if (block.kind === "heading") return block.text.toUpperCase();
+  if (block.kind === "title" && block.meta) return `${block.text}${SEPARATOR}${block.meta}`;
+  return block.text;
 }
 
 /** "Firstname_Lastname_Resume" from the contact name. */

@@ -64,7 +64,10 @@ export function buildChangeLog({
   extracted,
   resume,
   honesty,
+  density = "standard",
 }: {
+  /** Which export layout was used ("compact" when 10 pt didn't fit on one page). */
+  density?: "standard" | "compact";
   issues: AtsIssue[];
   extracted: Resume | null;
   resume: Resume;
@@ -104,8 +107,16 @@ export function buildChangeLog({
     kind: "fix",
     title: "Applied the ATS template",
     detail:
-      "One column, Helvetica/Arial at 10.5 pt, job title, company and dates on their own lines, no header, footer or tables.",
+      "One column, Helvetica/Arial, job title on its own line with company and dates on the next, no header, footer or tables.",
   });
+  if (density === "compact") {
+    changes.push({
+      kind: "fix",
+      title: "Fitted to one page",
+      detail:
+        "At 10 pt it ran onto a second page, so it uses 9.5 pt text and slightly tighter spacing. Nothing was cut.",
+    });
+  }
 
   const checked = Object.values(honesty.totals).reduce((n, t) => n + t.checked, 0);
   if (honesty.flags.length === 0) {

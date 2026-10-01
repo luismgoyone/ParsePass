@@ -55,9 +55,10 @@ export function ExportView() {
             extracted,
             resume,
             honesty: checkHonesty(resume, doc.sourceText),
+            density: result?.density,
           })
         : [],
-    [resume, doc, diagnosis, extracted],
+    [resume, doc, diagnosis, extracted, result?.density],
   );
 
   if (!ready) return <Loading />;

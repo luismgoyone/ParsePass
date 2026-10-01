@@ -7,36 +7,54 @@ Font.registerHyphenationCallback((word) => [word]);
 
 // Helvetica is one of the PDF standard fonts (metrically the same as Arial): nothing to embed,
 // and every parser maps it to real, selectable text.
-const s = StyleSheet.create({
-  page: {
-    fontFamily: "Helvetica",
-    fontSize: 10.5,
-    lineHeight: 1.35,
-    paddingVertical: 48,
-    paddingHorizontal: 54,
-    color: "#111111",
-  },
-  name: { fontFamily: "Helvetica-Bold", fontSize: 18, lineHeight: 1.2, marginBottom: 4 },
-  contact: { fontSize: 10, marginTop: 2, marginBottom: 4 },
-  heading: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 11,
-    marginTop: 12,
-    marginBottom: 4,
-    paddingBottom: 2,
-    borderBottomWidth: 0.75,
-    borderBottomColor: "#111111",
-  },
-  title: { fontFamily: "Helvetica-Bold", marginTop: 6 },
-  line: {},
-  paragraph: {},
-  bulletRow: { flexDirection: "row", marginTop: 1.5 },
-  bulletMark: { width: 12 },
-  bulletText: { flex: 1 },
-});
+/**
+ * "standard" is 10 pt, the smallest size the ATS rules call for. "compact" (9.5 pt, tighter
+ * spacing) is only used when standard runs past one page.
+ */
+export type Density = "standard" | "compact";
+
+const styles = (d: Density) =>
+  StyleSheet.create({
+    page: {
+      fontFamily: "Helvetica",
+      // 0.5" top/bottom, 0.6" sides.
+      fontSize: d === "compact" ? 9.5 : 10,
+      lineHeight: d === "compact" ? 1.15 : 1.25,
+      paddingVertical: d === "compact" ? 30 : 36,
+      paddingHorizontal: d === "compact" ? 38 : 43,
+      color: "#111111",
+    },
+    name: { fontFamily: "Helvetica-Bold", fontSize: 16, lineHeight: 1.2, marginBottom: 2 },
+    contact: { marginTop: 1 },
+    heading: {
+      fontFamily: "Helvetica-Bold",
+      fontSize: 10.5,
+      marginTop: d === "compact" ? 6 : 8,
+      marginBottom: d === "compact" ? 2 : 3,
+      paddingBottom: 1.5,
+      borderBottomWidth: 0.75,
+      borderBottomColor: "#111111",
+    },
+    title: { fontFamily: "Helvetica-Bold", marginTop: d === "compact" ? 3 : 4 },
+    titleMeta: { fontFamily: "Helvetica" },
+    line: {},
+    paragraph: {},
+    bulletRow: { flexDirection: "row", marginTop: d === "compact" ? 0.5 : 1 },
+    bulletMark: { width: 10 },
+    bulletText: { flex: 1 },
+  });
 
 /** The ATS template as a PDF: one column, real text, no header, footer, tables or graphics. */
-export function ResumePdf({ blocks, title }: { blocks: Block[]; title: string }) {
+export function ResumePdf({
+  blocks,
+  title,
+  density = "standard",
+}: {
+  blocks: Block[];
+  title: string;
+  density?: Density;
+}) {
+  const s = styles(density);
   return (
     <Document
       title={title}
@@ -51,6 +69,11 @@ export function ResumePdf({ blocks, title }: { blocks: Block[]; title: string })
               <Text style={s.bulletMark}>{BULLET}</Text>
               <Text style={s.bulletText}>{block.text}</Text>
             </View>
+          ) : block.kind === "title" && block.meta ? (
+            <Text key={i} style={s.title}>
+              {block.text}
+              <Text style={s.titleMeta}>{displayText(block).slice(block.text.length)}</Text>
+            </Text>
           ) : (
             <Text
               key={i}

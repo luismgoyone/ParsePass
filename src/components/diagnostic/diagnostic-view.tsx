@@ -36,7 +36,7 @@ export function DiagnosticView({ next }: { next?: React.ReactNode }) {
 
   return (
     <main className="flex flex-1 flex-col">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-2 md:px-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-page py-2">
         <div className="flex max-w-full min-w-0 items-center gap-3">
           <span className="inline-flex min-w-0 items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 font-mono text-xs">
             <FileText aria-hidden className="size-3.5 shrink-0 text-muted-foreground" />
@@ -65,7 +65,7 @@ export function DiagnosticView({ next }: { next?: React.ReactNode }) {
       <ScoreBanner score={score} issues={issues} />
 
       {issues.length > 0 && (
-        <section aria-labelledby="anomaly-log" className="border-b border-border px-4 py-3 md:px-6">
+        <section aria-labelledby="anomaly-log" className="border-b border-border px-page py-3">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
             <h2 id="anomaly-log" className="text-muted-foreground">
               ISSUES ({issues.length})
@@ -93,7 +93,7 @@ export function DiagnosticView({ next }: { next?: React.ReactNode }) {
         </section>
       )}
 
-      <div className="grid flex-1 gap-4 p-4 md:px-6 lg:grid-cols-2">
+      <div className="grid flex-1 gap-4 px-page py-4 lg:grid-cols-2">
         <Pane
           title="Source document"
           icon={FileText}
@@ -131,7 +131,7 @@ export function DiagnosticView({ next }: { next?: React.ReactNode }) {
         </Pane>
       </div>
 
-      <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-border bg-panel/95 px-4 py-3 backdrop-blur md:px-6">
+      <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-border bg-panel/95 px-page py-3 backdrop-blur">
         {/* Phones get just the action: the bar shouldn't cover a third of the screen. */}
         <p className="hidden text-muted-foreground sm:block">
           <span className="font-mono text-xs text-primary-text">Next:</span> {ai.label} restructures
@@ -188,7 +188,7 @@ function ScoreBanner({ score, issues }: { score: number; issues: AtsIssue[] }) {
   const critical = issues.filter((i) => i.severity === "critical").length;
   if (issues.length === 0) {
     return (
-      <div className="flex flex-wrap items-center gap-3 border-b border-success/30 bg-success/10 px-4 py-3 md:px-6">
+      <div className="flex flex-wrap items-center gap-3 border-b border-success/30 bg-success/10 px-page py-3">
         <CheckCircle2 aria-hidden className="size-5 text-success" />
         <p className="font-medium text-success">No parsing issues found.</p>
         <ScoreChip score={score} tone="success" />
@@ -202,7 +202,7 @@ function ScoreBanner({ score, issues }: { score: number; issues: AtsIssue[] }) {
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center gap-3 border-b px-4 py-3 md:px-6",
+        "flex flex-wrap items-center gap-3 border-b px-page py-3",
         tone === "critical"
           ? "border-destructive/30 bg-destructive/10"
           : "border-warning/30 bg-warning/10",

@@ -89,6 +89,17 @@
   --radius: 0.25rem;
 }
 
+/*
+ * Page gutters that also cap content width. Rows keep their full-bleed backgrounds and borders,
+ * while their content stops at 80rem (1280px, the mockups' width) and stays centered.
+ */
+@utility px-page {
+  padding-inline: max(1rem, calc((100% - 80rem) / 2));
+  @media (width >= 48rem) {
+    padding-inline: max(1.5rem, calc((100% - 80rem) / 2));
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

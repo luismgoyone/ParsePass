@@ -1,6 +1,6 @@
 {
   "description": "Turn any resume into a clean, ATS-friendly version and see exactly what an applicant tracking system reads, before and after.",
-  "homepage": "",
+  "homepage": "https://parsepass.vercel.app",
   "topics": [
     "nextjs",
     "typescript",
@@ -11,7 +11,8 @@
     "resume-parser",
     "job-search",
     "pdf",
-    "docx"
+    "docx",
+    "portfolio"
   ],
   "defaultBranch": "main",
   "branchProtection": {

@@ -15,30 +15,45 @@ export interface RateLimitResult {
   reset: number;
 }
 
-let limiter: Ratelimit | null | undefined;
+/** "extract": resume conversions. "assist": keyword checks and bullet suggestions. */
+export type Bucket = "extract" | "assist";
+
+const limiters = new Map<Bucket, Ratelimit | null>();
 let warned = false;
 
 /** Upstash Redis limiter, or null when not configured (local dev, tests, previews without it). */
-function getLimiter(): Ratelimit | null {
-  if (limiter !== undefined) return limiter;
+function getLimiter(bucket: Bucket): Ratelimit | null {
+  if (limiters.has(bucket)) return limiters.get(bucket)!;
   // The Vercel Marketplace integration sets KV_REST_API_*; a direct Upstash database sets UPSTASH_*.
   const url = optionalEnv("UPSTASH_REDIS_REST_URL") ?? optionalEnv("KV_REST_API_URL");
   const token = optionalEnv("UPSTASH_REDIS_REST_TOKEN") ?? optionalEnv("KV_REST_API_TOKEN");
   if (!url || !token) {
-    limiter = null;
+    limiters.set(bucket, null);
     return null;
   }
-  limiter = new Ratelimit({
+  const limiter = new Ratelimit({
     redis: new Redis({ url, token }),
-    limiter: Ratelimit.fixedWindow(conversionsPerDay(), "1 d"),
-    prefix: "parsepass:extract",
+    limiter: Ratelimit.fixedWindow(
+      bucket === "extract" ? conversionsPerDay() : assistsPerDay(),
+      "1 d",
+    ),
+    prefix: `parsepass:${bucket}`,
   });
+  limiters.set(bucket, limiter);
   return limiter;
 }
 
 export function conversionsPerDay(): number {
-  const n = Number(optionalEnv("RATE_LIMIT_PER_DAY") ?? 5);
-  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 5;
+  return positive(optionalEnv("RATE_LIMIT_PER_DAY"), 5);
+}
+
+export function assistsPerDay(): number {
+  return positive(optionalEnv("RATE_LIMIT_ASSIST_PER_DAY"), 20);
+}
+
+function positive(value: string | undefined, fallback: number): number {
+  const n = Number(value ?? fallback);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
 }
 
 /** Hash the visitor's IP so Redis never holds a raw address. */
@@ -51,11 +66,14 @@ export function visitorKey(request: Request): string {
 }
 
 /**
- * Count one Claude conversion against the visitor's daily allowance. Fails open: if Redis is
+ * Count one AI call against the visitor's daily allowance for that bucket. Fails open: if Redis is
  * unreachable, the request goes through and the error is logged (without the key).
  */
-export async function takeConversion(request: Request): Promise<RateLimitResult | null> {
-  const rl = getLimiter();
+export async function takeConversion(
+  request: Request,
+  bucket: Bucket = "extract",
+): Promise<RateLimitResult | null> {
+  const rl = getLimiter(bucket);
   if (!rl) {
     if (!warned && process.env.VERCEL_ENV === "production") {
       console.warn("rate-limit: Upstash Redis isn't configured; /api/extract is not rate limited");

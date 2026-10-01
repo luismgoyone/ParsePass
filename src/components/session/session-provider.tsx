@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 
 import { ExtractError } from "@/lib/ats/errors";
 import type { AiInfo } from "@/lib/extraction/provider";
+import type { Keyword } from "@/lib/jobs/schema";
 import type { Diagnosis, ExtractedDoc } from "@/lib/ats/types";
 import type { Resume } from "@/lib/resume/schema";
 
@@ -24,6 +25,8 @@ export interface SessionState {
   /** The model's untouched extraction, to revert edits and to build the change log. */
   extracted: Resume | null;
   model: string | null;
+  /** The target job, once its keywords have been read. */
+  job: { description: string; role: string; keywords: Keyword[] } | null;
 }
 
 interface SessionContextValue extends SessionState {
@@ -40,6 +43,11 @@ interface SessionContextValue extends SessionState {
   structure: () => Promise<boolean>;
   structuring: boolean;
   setResume: (resume: Resume) => void;
+  /** Read the keywords a job posting asks for. Matching happens client-side, live. */
+  findKeywords: (description: string) => Promise<boolean>;
+  findingKeywords: boolean;
+  keywordError: string | null;
+  clearJob: () => void;
   revertResume: () => void;
   clearError: () => void;
   reset: () => void;
@@ -52,6 +60,7 @@ const EMPTY: SessionState = {
   resume: null,
   extracted: null,
   model: null,
+  job: null,
 };
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -62,6 +71,8 @@ export function SessionProvider({ ai, children }: { ai: AiInfo; children: React.
   const [source, setSource] = useState<SourcePreview | null>(null);
   const [busy, setBusy] = useState(false);
   const [structuring, setStructuring] = useState(false);
+  const [findingKeywords, setFindingKeywords] = useState(false);
+  const [keywordError, setKeywordError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -95,7 +106,8 @@ export function SessionProvider({ ai, children }: { ai: AiInfo; children: React.
           load(),
           import("@/lib/ats/checks"),
         ]);
-        setState({ ...EMPTY, doc, diagnosis: diagnose(doc) });
+        // A new resume starts fresh, but the target job stays.
+        setState((s) => ({ ...EMPTY, job: s.job, doc, diagnosis: diagnose(doc) }));
         setSource(preview);
         return true;
       } catch (e) {
@@ -168,6 +180,37 @@ export function SessionProvider({ ai, children }: { ai: AiInfo; children: React.
     }
   }, [state.doc, ai.label]);
 
+  const findKeywords = useCallback(async (description: string) => {
+    setFindingKeywords(true);
+    setKeywordError(null);
+    try {
+      const res = await fetch("/api/keywords", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ jobDescription: description }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        role?: string;
+        keywords?: Keyword[];
+        error?: string;
+      };
+      if (!res.ok || !data.keywords) {
+        setKeywordError(data.error ?? "Couldn't read that job description. Try again.");
+        return false;
+      }
+      setState((s) => ({
+        ...s,
+        job: { description, role: data.role ?? "", keywords: data.keywords! },
+      }));
+      return true;
+    } catch {
+      setKeywordError("Couldn't reach the server. Check your connection and try again.");
+      return false;
+    } finally {
+      setFindingKeywords(false);
+    }
+  }, []);
+
   const value = useMemo<SessionContextValue>(
     () => ({
       ...state,
@@ -181,6 +224,10 @@ export function SessionProvider({ ai, children }: { ai: AiInfo; children: React.
       structure,
       structuring,
       setResume: (resume) => setState((s) => ({ ...s, resume })),
+      findKeywords,
+      findingKeywords,
+      keywordError,
+      clearJob: () => setState((s) => ({ ...s, job: null })),
       revertResume: () => setState((s) => ({ ...s, resume: s.extracted })),
       clearError: () => setError(null),
       reset: () => {
@@ -188,7 +235,21 @@ export function SessionProvider({ ai, children }: { ai: AiInfo; children: React.
         setSource(null);
       },
     }),
-    [state, ai, ready, source, busy, error, ingestFile, ingestText, structure, structuring],
+    [
+      state,
+      ai,
+      ready,
+      source,
+      busy,
+      error,
+      ingestFile,
+      ingestText,
+      structure,
+      structuring,
+      findKeywords,
+      findingKeywords,
+      keywordError,
+    ],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

@@ -193,6 +193,11 @@ fake latency numbers). The app follows the mockups' layout but keeps copy true t
   converts dates to "Mon YYYY" itself (`src/lib/ats/dates.ts`). That keeps the honesty check
   (`src/lib/resume/honesty.ts`) a plain match against the source text. The check re-runs on
   every edit, so anything a user adds is visible too.
+- **V2: job match and bullet suggestions** (`src/lib/jobs/`, `src/lib/suggest/`). The model only
+  lists a job's keywords; `matchKeywords()` does the matching (phrases, aliases, simple plurals,
+  required terms weighted double), so the score is repeatable and live. Bullet suggestions pass
+  `checkSuggestion()` on the server: no new numbers, and no named tools or products that aren't
+  on the resume. Both count against a separate daily allowance (`RATE_LIMIT_ASSIST_PER_DAY`).
 - **Gemini as a free alternative for evaluation.** `src/lib/extraction/` has two providers behind
   one `extractResume()`: Claude (default) and Gemini's free tier, chosen by which key is set or by
   `EXTRACTION_PROVIDER`. Both use the same prompt, JSON schema, Zod validation and honesty check,

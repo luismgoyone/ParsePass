@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-import { extractResume, ExtractionError } from "@/lib/extraction";
+import { errorResponse, rateLimited, readJson } from "@/lib/api";
+import { extractResume } from "@/lib/extraction";
 import { takeConversion } from "@/lib/rate-limit";
 import { checkHonesty } from "@/lib/resume/honesty";
 
@@ -20,12 +21,9 @@ const RequestSchema = z.object({
 
 /** Structure resume text with the configured model, then check the result against the source. Stores nothing. */
 export async function POST(request: Request) {
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
+  const body = await readJson(request);
+  if (body === undefined)
     return Response.json({ error: "Send JSON: { text, links }." }, { status: 400 });
-  }
   const parsed = RequestSchema.safeParse(body);
   if (!parsed.success) {
     return Response.json(
@@ -35,16 +33,8 @@ export async function POST(request: Request) {
   }
 
   // Count only well-formed requests against the visitor's daily allowance.
-  const quota = await takeConversion(request);
-  if (quota && !quota.allowed) {
-    const retryAfter = Math.max(1, Math.ceil((quota.reset - Date.now()) / 1000));
-    return Response.json(
-      {
-        error: `You've used today's ${quota.limit} free conversions. Try again in ${formatWait(retryAfter)}.`,
-      },
-      { status: 429, headers: { "Retry-After": String(retryAfter) } },
-    );
-  }
+  const quota = await takeConversion(request, "extract");
+  if (quota && !quota.allowed) return rateLimited(quota, "conversions");
 
   const { text, links } = parsed.data;
   try {
@@ -52,17 +42,6 @@ export async function POST(request: Request) {
     const honesty = checkHonesty(resume, text);
     return Response.json({ resume, honesty, model, usage });
   } catch (error) {
-    if (error instanceof ExtractionError) {
-      return Response.json({ error: error.message }, { status: error.status });
-    }
-    console.error("extract: unexpected error", error instanceof Error ? error.name : typeof error);
-    return Response.json({ error: "Something went wrong. Try again." }, { status: 500 });
+    return errorResponse(error, "extract");
   }
-}
-
-function formatWait(seconds: number): string {
-  const hours = Math.round(seconds / 3600);
-  if (hours >= 1) return `${hours} hour${hours === 1 ? "" : "s"}`;
-  const minutes = Math.max(1, Math.round(seconds / 60));
-  return `${minutes} minute${minutes === 1 ? "" : "s"}`;
 }

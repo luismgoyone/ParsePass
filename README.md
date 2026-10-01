@@ -38,6 +38,15 @@ result parses by reading the exported file back. It never invents experience.
 | `DAT-01`            | Mixed or ambiguous date formats (`04/21`)                    |
 | `LNK-01`            | Links hidden behind words like "LinkedIn"                    |
 
+### Tailor it to a job
+
+- **Job match:** paste a job description. The model lists the skills and keywords it asks for;
+  ParsePass does the matching itself, so the score is repeatable and updates as you edit. It
+  shows what's covered and what's missing, and never adds a keyword for you.
+- **Stronger bullets:** suggested rewording for each role, shown as a diff you accept or dismiss.
+  Suggestions that add a number or a named tool, company or product that isn't on your resume are
+  thrown out in code before you see them.
+
 ## Honesty and privacy
 
 - **Claude restructures, it doesn't write.** The prompt forbids adding companies, titles, dates,
@@ -84,6 +93,7 @@ needs a model: `ANTHROPIC_API_KEY` for Claude, or `GEMINI_API_KEY` for Gemini's 
 | `EXTRACTION_PROVIDER`                                 | No                    | `anthropic` or `gemini`, to choose explicitly when both keys are set.                                                                                                                     |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | For rate limiting     | Upstash Redis. `KV_REST_API_URL` / `KV_REST_API_TOKEN` (set by the Vercel Marketplace integration) also work. Unset disables rate limiting.                                               |
 | `RATE_LIMIT_PER_DAY`                                  | No                    | Conversions per visitor per day (default 5).                                                                                                                                              |
+| `RATE_LIMIT_ASSIST_PER_DAY`                           | No                    | Job keyword checks and bullet suggestions per visitor per day (default 20).                                                                                                               |
 
 The app builds and all tests pass with no env vars set.
 

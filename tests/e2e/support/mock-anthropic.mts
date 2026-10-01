@@ -45,6 +45,35 @@ const invented = JSON.stringify({
   certifications: [],
 });
 
+/** Keywords for any job description: the sample resume covers some, not all. */
+const keywords = JSON.stringify({
+  role: "Senior Frontend Engineer",
+  keywords: [
+    { term: "TypeScript", aliases: ["TS"], kind: "skill", importance: "required" },
+    { term: "React", aliases: [], kind: "skill", importance: "required" },
+    { term: "Next.js", aliases: ["NextJS"], kind: "skill", importance: "required" },
+    { term: "GraphQL", aliases: [], kind: "skill", importance: "required" },
+    { term: "PostgreSQL", aliases: ["Postgres"], kind: "tool", importance: "preferred" },
+    { term: "Kubernetes", aliases: ["K8s"], kind: "tool", importance: "preferred" },
+  ],
+});
+
+/** Bullet rewrites: one honest, one that adds a fact (the server must throw it out). */
+const suggestions = JSON.stringify({
+  suggestions: [
+    {
+      index: 0,
+      text: "Rebuilt the patient portal in Next.js, cutting load time by 40%.",
+      reason: "Stronger verb, less filler",
+    },
+    {
+      index: 1,
+      text: "Designed a billing API that processes 2 million claims a month for 50 hospitals.",
+      reason: "Adds scope",
+    },
+  ],
+});
+
 createServer((req, res) => {
   if (req.url === "/health") return void res.end("ok");
   if (req.method !== "POST" || !req.url?.startsWith("/v1/messages")) {
@@ -54,8 +83,13 @@ createServer((req, res) => {
   let body = "";
   req.on("data", (chunk) => (body += chunk));
   req.on("end", () => {
-    const request = JSON.parse(body) as { model: string; messages: { content: string }[] };
+    const request = JSON.parse(body) as {
+      model: string;
+      system?: string;
+      messages: { content: string }[];
+    };
     const text = String(request.messages[0]?.content ?? "");
+    const system = String(request.system ?? "");
     if (text.includes("MOCK_FAIL")) {
       res.writeHead(500, { "content-type": "application/json" });
       res.end(
@@ -70,7 +104,18 @@ createServer((req, res) => {
         type: "message",
         role: "assistant",
         model: request.model,
-        content: [{ type: "text", text: text.includes("JORDAN RIVERA") ? jordan : invented }],
+        content: [
+          {
+            type: "text",
+            text: system.includes("job posting")
+              ? keywords
+              : system.includes("resume bullet points")
+                ? suggestions
+                : text.includes("JORDAN RIVERA")
+                  ? jordan
+                  : invented,
+          },
+        ],
         stop_reason: "end_turn",
         stop_sequence: null,
         usage: { input_tokens: 1200, output_tokens: 600 },

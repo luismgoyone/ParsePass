@@ -7,7 +7,13 @@ import { optionalEnv, requireEnv } from "@/lib/env";
 import { ResumeSchema } from "@/lib/resume/schema";
 
 import { EXTRACTION_SYSTEM_PROMPT, extractionUserMessage } from "./prompt";
-import { ExtractionError, type ExtractionResult, type Link } from "./types";
+import {
+  ExtractionError,
+  type ExtractionResult,
+  type GenerateRequest,
+  type GenerateResult,
+  type Link,
+} from "./types";
 
 /**
  * A free-tier Gemini model with structured output. Checked against a new AI Studio key on
@@ -27,27 +33,29 @@ function getClient(): GoogleGenAI {
 }
 
 /** JSON Schema for Gemini's structured output, from the same Zod schema Claude uses. */
-function responseSchema() {
-  const schema = z.toJSONSchema(ResumeSchema) as Record<string, unknown>;
-  delete schema.$schema; // Gemini accepts the schema body, not the meta-schema pointer
-  return schema;
+function jsonSchema(schema: z.ZodType) {
+  const json = z.toJSONSchema(schema) as Record<string, unknown>;
+  delete json.$schema; // Gemini accepts the schema body, not the meta-schema pointer
+  return json;
 }
 
-/** Structure resume text with Gemini (structured JSON output), validated with Zod. */
-export async function extractWithGemini(text: string, links: Link[]): Promise<ExtractionResult> {
+/** One structured call to Gemini (JSON output constrained by the schema), validated with Zod. */
+export async function generateWithGemini<T extends z.ZodType>(
+  req: GenerateRequest<T>,
+): Promise<GenerateResult<z.infer<T>>> {
   const model = optionalEnv("GEMINI_MODEL") ?? DEFAULT_GEMINI_MODEL;
 
   const request = () =>
     getClient().models.generateContent({
       model,
-      contents: extractionUserMessage(text, links),
+      contents: req.user,
       config: {
-        systemInstruction: EXTRACTION_SYSTEM_PROMPT,
+        systemInstruction: req.system,
         responseMimeType: "application/json",
-        responseJsonSchema: responseSchema(),
-        // Copying, not creative writing.
+        responseJsonSchema: jsonSchema(req.schema),
+        // Copying and careful rewording, not creative writing.
         temperature: 0,
-        maxOutputTokens: 16000,
+        maxOutputTokens: req.maxTokens ?? 16000,
       },
     });
 
@@ -63,7 +71,7 @@ export async function extractWithGemini(text: string, links: Link[]): Promise<Ex
     }
   } catch (error) {
     if (error instanceof ApiError) {
-      console.error("extract: Gemini API error", error.status);
+      console.error(`${req.task}: Gemini API error`, error.status);
       if (error.status === 503) {
         throw new ExtractionError("Gemini is overloaded right now. Try again in a minute.", 503);
       }
@@ -82,7 +90,7 @@ export async function extractWithGemini(text: string, links: Link[]): Promise<Ex
       if (error.status === 400 || error.status === 401 || error.status === 403) {
         throw new ExtractionError("Gemini rejected the request. Check GEMINI_API_KEY.", 503);
       }
-      throw new ExtractionError("Gemini couldn't structure this resume. Try again.", 502);
+      throw new ExtractionError(`Gemini couldn't ${req.action}. Try again.`, 502);
     }
     throw error;
   }
@@ -93,19 +101,16 @@ export async function extractWithGemini(text: string, links: Link[]): Promise<Ex
   };
   const finish = response.candidates?.[0]?.finishReason;
   // Log counts only, never resume text.
-  console.info("extract: usage", JSON.stringify({ model, ...usage, finish }));
+  console.info(`${req.task}: usage`, JSON.stringify({ model, ...usage, finish }));
 
   if (finish === "MAX_TOKENS") {
     throw new ExtractionError(
-      "This resume is too long to structure in one pass. Try a shorter version.",
+      "This is too long to process in one pass. Try a shorter version.",
       422,
     );
   }
   if (finish && finish !== "STOP") {
-    throw new ExtractionError(
-      "This text couldn't be processed. Make sure it's a resume and try again.",
-      422,
-    );
+    throw new ExtractionError(`This text couldn't be processed. ${req.refusalHint}`, 422);
   }
 
   let json: unknown = null;
@@ -114,12 +119,25 @@ export async function extractWithGemini(text: string, links: Link[]): Promise<Ex
   } catch {
     // handled below
   }
-  const parsed = ResumeSchema.safeParse(json);
+  const parsed = req.schema.safeParse(json);
   if (!parsed.success) {
-    console.error("extract: Gemini output failed schema validation");
+    console.error(`${req.task}: Gemini output failed schema validation`);
     throw new ExtractionError("Gemini returned an unexpected result. Try again.", 502);
   }
-  return { resume: parsed.data, model, usage };
+  return { data: parsed.data, model, usage };
+}
+
+/** Structure resume text with Gemini. */
+export async function extractWithGemini(text: string, links: Link[]): Promise<ExtractionResult> {
+  const { data, model, usage } = await generateWithGemini({
+    task: "extract",
+    action: "structure this resume",
+    refusalHint: "Make sure it's a resume and try again.",
+    schema: ResumeSchema,
+    system: EXTRACTION_SYSTEM_PROMPT,
+    user: extractionUserMessage(text, links),
+  });
+  return { resume: data, model, usage };
 }
 
 function retryDelayMs(): number {

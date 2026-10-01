@@ -23,7 +23,9 @@ import { formatRange } from "@/lib/ats/dates";
 import { checkHonesty, type HonestyFlag, type HonestyKind } from "@/lib/resume/honesty";
 import { EMPTY_EXPERIENCE, type Resume } from "@/lib/resume/schema";
 
+import { BulletSuggestions } from "./bullet-suggestions";
 import { AddButton, Field, IconButton, ListEditor, SectionCard, TextArea } from "./fields";
+import { JobMatchPanel } from "./job-match-panel";
 
 export function ReviewView({ next }: { next?: React.ReactNode }) {
   const { ready, doc, resume, extracted, model, setResume, revertResume, ai } = useSession();
@@ -197,6 +199,10 @@ export function ReviewView({ next }: { next?: React.ReactNode }) {
                     flags={flags}
                     addLabel="Add bullet"
                     onChange={(v) => edit((d) => void (d.experience[i].bullets = v))}
+                  />
+                  <BulletSuggestions
+                    job={job}
+                    onAccept={(b, text) => edit((d) => void (d.experience[i].bullets[b] = text))}
                   />
                 </div>
               ))}
@@ -432,6 +438,7 @@ export function ReviewView({ next }: { next?: React.ReactNode }) {
 
         <aside className="flex flex-col gap-5 lg:sticky lg:top-20 lg:self-start">
           <HonestyPanel totals={report.totals} flags={report.flags} />
+          <JobMatchPanel resume={resume} />
           <details className="rounded-lg border border-border bg-panel">
             <summary className="flex cursor-pointer items-center justify-between px-4 py-3 font-mono text-xs text-muted-foreground">
               resume.json

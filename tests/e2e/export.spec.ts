@@ -8,7 +8,7 @@ test("export the sample as an ATS-clean PDF and DOCX", async ({ page }) => {
   await expect(page.getByTestId("ats-score")).toHaveText(/Score: \d+\/100/);
   const before = await page.getByTestId("ats-score").textContent();
 
-  await page.getByRole("button", { name: /Continue: structure with Claude/ }).click();
+  await page.getByRole("button", { name: /Continue: structure with/ }).click();
   await expect(page).toHaveURL(/\/review$/);
   await page.getByRole("link", { name: "Continue to export" }).click();
 
@@ -55,7 +55,7 @@ test("export the sample as an ATS-clean PDF and DOCX", async ({ page }) => {
 test("edits made on the review screen are in the export", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Try a sample resume" }).click();
-  await page.getByRole("button", { name: /Continue: structure with Claude/ }).click();
+  await page.getByRole("button", { name: /Continue: structure with/ }).click();
   await page.getByLabel("Location").first().fill("Portland, OR");
   await page.getByRole("link", { name: "Continue to export" }).click();
 

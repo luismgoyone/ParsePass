@@ -51,12 +51,15 @@ export function UploadPanel() {
       aria-busy={busy}
       className="mx-auto w-full max-w-4xl overflow-hidden rounded-lg border border-border bg-panel shadow-2xl shadow-black/40"
     >
-      <div className="flex h-12 items-center justify-between border-b border-border bg-card px-4">
-        <span className="flex items-center gap-2 font-mono text-[13px]">
+      <div className="flex h-12 items-center justify-between gap-3 border-b border-border bg-card px-2 sm:px-4">
+        <span className="hidden items-center gap-2 font-mono text-[13px] sm:flex">
           <Terminal aria-hidden className="size-4 text-subtle-foreground" />
           SOURCE_RESUME
         </span>
-        <div role="tablist" className="flex rounded-md border border-border bg-console p-0.5">
+        <div
+          role="tablist"
+          className="flex flex-1 rounded-md border border-border bg-console p-0.5 sm:flex-none"
+        >
           <ModeTab active={mode === "file"} onClick={() => setMode("file")} icon={FileUp}>
             Upload file
           </ModeTab>
@@ -67,7 +70,7 @@ export function UploadPanel() {
       </div>
 
       {mode === "file" ? (
-        <div className="p-6">
+        <div className="p-3 sm:p-6">
           <label
             htmlFor={inputId}
             onDragOver={(e) => {
@@ -81,7 +84,7 @@ export function UploadPanel() {
               void handleFile(e.dataTransfer.files[0]);
             }}
             className={cn(
-              "group flex w-full cursor-pointer flex-col items-center rounded-lg border-2 border-dashed border-border bg-console px-6 py-10 text-center transition-colors hover:border-primary",
+              "group flex w-full cursor-pointer flex-col items-center rounded-lg border-2 border-dashed border-border bg-console px-4 py-8 text-center transition-colors hover:border-primary sm:px-6 sm:py-10",
               dragging && "border-primary bg-primary/5",
               busy && "pointer-events-none opacity-70",
             )}
@@ -106,7 +109,15 @@ export function UploadPanel() {
             </span>
             <span className="mb-1 flex items-center gap-2">
               <span className="text-lg font-medium">
-                {busy ? "Extracting text…" : "Drag and drop your resume"}
+                {busy ? (
+                  "Extracting text…"
+                ) : (
+                  <>
+                    {/* Phones have nothing to drag. */}
+                    <span className="sm:hidden">Choose your resume</span>
+                    <span className="hidden sm:inline">Drag and drop your resume</span>
+                  </>
+                )}
               </span>
               <span className="rounded-sm border border-border bg-card px-2 py-0.5 font-mono text-xs text-muted-foreground">
                 PDF, DOCX
@@ -136,7 +147,7 @@ export function UploadPanel() {
           </label>
         </div>
       ) : (
-        <div className="flex flex-col gap-2 p-6">
+        <div className="flex flex-col gap-2 p-3 sm:p-6">
           <div className="flex items-center justify-between font-mono text-xs text-subtle-foreground">
             <label htmlFor={`${inputId}-text`}>PLAIN_TEXT</label>
             <span>{text.length.toLocaleString()} characters</span>
@@ -172,7 +183,7 @@ export function UploadPanel() {
       {error && (
         <div
           role="alert"
-          className="mx-6 mb-4 flex items-start gap-3 rounded-md border border-l-2 border-destructive/40 border-l-destructive bg-destructive/10 p-3"
+          className="mx-3 mb-4 flex items-start gap-3 rounded-md border border-l-2 border-destructive/40 border-l-destructive bg-destructive/10 p-3 sm:mx-6"
         >
           <AlertTriangle aria-hidden className="mt-0.5 size-4 shrink-0 text-destructive" />
           <p className="flex-1">{error}</p>
@@ -209,7 +220,7 @@ function ModeTab({
       aria-selected={active}
       onClick={onClick}
       className={cn(
-        "flex items-center gap-1.5 rounded-sm border px-3 py-1 font-mono text-xs transition-colors",
+        "flex flex-1 items-center justify-center gap-1.5 rounded-sm border px-3 py-1.5 font-mono text-xs whitespace-nowrap transition-colors sm:flex-none sm:py-1",
         active
           ? "border-border-strong bg-raised text-foreground"
           : "border-transparent text-muted-foreground hover:text-foreground",
@@ -224,7 +235,7 @@ function ModeTab({
 export function PrivacyNote() {
   const { ai } = useSession();
   return (
-    <div className="mx-6 mb-6 flex items-center gap-3 rounded-md border border-border bg-console p-3.5">
+    <div className="mx-3 mb-3 flex items-center gap-3 rounded-md border border-border bg-console p-3.5 sm:mx-6 sm:mb-6">
       <span className="flex size-8 shrink-0 items-center justify-center rounded-md border border-success/30 bg-success/10">
         <Lock aria-hidden className="size-4 text-success" />
       </span>

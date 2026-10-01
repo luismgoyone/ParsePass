@@ -33,9 +33,9 @@ export default function HomePage() {
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-16 px-4 py-10 md:px-6">
       <section className="mx-auto flex max-w-4xl flex-col items-center gap-4 pt-4 text-center">
-        <div className="inline-flex items-center gap-2 rounded-md border border-border bg-console px-2.5 py-1 font-mono text-xs text-muted-foreground">
+        <div className="inline-flex flex-wrap items-center justify-center gap-x-2 rounded-md border border-border bg-console px-2.5 py-1 font-mono text-xs text-muted-foreground">
           <span className="text-warning">unpdf + mammoth</span>
-          <span className="text-subtle-foreground">/</span>
+          <span className="hidden text-subtle-foreground sm:inline">/</span>
           <span>the same text extraction an ATS does</span>
         </div>
         <h1 className="text-4xl leading-tight font-semibold tracking-tight text-balance md:text-5xl">

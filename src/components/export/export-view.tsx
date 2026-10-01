@@ -128,7 +128,7 @@ export function ExportView() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Pane title="Exported PDF" icon={FileText} meta={`${result.baseName}.pdf`}>
-          <div className="max-h-[75vh] overflow-auto bg-zinc-800/40">
+          <div className="overflow-auto bg-zinc-800/40 lg:max-h-[75vh]">
             <PdfPages bytes={result.pdfBytes} doc={after} issues={[]} selectedRule={null} />
           </div>
         </Pane>
@@ -143,7 +143,7 @@ export function ExportView() {
           <AtsConsole
             lines={after.lines}
             issues={result.diagnosis.issues}
-            className="max-h-[75vh]"
+            className="lg:max-h-[75vh]"
           />
           {!verification.match && verification.missing.length > 0 && (
             <div className="border-t border-border bg-warning/10 px-4 py-2 font-mono text-xs text-amber-200">

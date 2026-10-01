@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, JetBrains_Mono } from "next/font/google";
 
 import { SessionProvider } from "@/components/session/session-provider";
@@ -24,6 +24,9 @@ export const metadata: Metadata = {
   description:
     "Turn any resume into a clean, ATS-friendly version and see exactly what an applicant tracking system reads, before and after.",
 };
+
+/** Dark browser chrome on phones, to match the app. */
+export const viewport: Viewport = { themeColor: "#09090b", colorScheme: "dark" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

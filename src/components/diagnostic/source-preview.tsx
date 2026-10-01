@@ -33,7 +33,7 @@ export function SourcePreview({
     return <PdfPages bytes={source.bytes!} doc={doc} issues={issues} selectedRule={selectedRule} />;
   if (source.kind === "docx") return <DocxPage bytes={source.bytes!} doc={doc} />;
   return (
-    <div className="m-4 bg-white p-8 text-zinc-900 shadow-lg">
+    <div className="m-2 bg-white p-4 text-zinc-900 shadow-lg sm:m-4 sm:p-8">
       <pre className="font-sans text-sm whitespace-pre-wrap">{source.text}</pre>
     </div>
   );
@@ -97,7 +97,7 @@ export function PdfPages({
   const selected = issues.find((i) => i.rule === selectedRule);
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 p-2 sm:p-4">
       {pages.map((src, p) => {
         const size = doc.pages[p];
         const pct = (v: number, of: number) => `${(v / of) * 100}%`;
@@ -119,7 +119,7 @@ export function PdfPages({
                 }}
               >
                 <span className="absolute top-0 left-1 rounded-sm bg-destructive px-1.5 py-0.5 font-mono text-[10px] whitespace-nowrap text-white">
-                  LAY-01 · parser reads straight across
+                  LAY-01<span className="hidden sm:inline"> · parser reads straight across</span>
                 </span>
               </div>
             )}
@@ -184,7 +184,7 @@ function DocxPage({ bytes, doc }: { bytes: Uint8Array; doc: ExtractedDoc }) {
 
   const header = doc.docx?.headerText;
   return (
-    <div className="m-4 bg-white p-8 text-zinc-900 shadow-lg">
+    <div className="m-2 bg-white p-4 text-zinc-900 shadow-lg sm:m-4 sm:p-8">
       {header && (
         <div className="relative mb-6 border-2 border-dashed border-warning bg-amber-50 p-3 pt-5 text-sm">
           <span className="absolute -top-3 left-3 rounded-sm bg-warning px-1.5 font-mono text-[10px] text-zinc-900">

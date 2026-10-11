@@ -55,7 +55,7 @@ export function ReviewView({ next }: { next?: React.ReactNode }) {
 
   return (
     <main className="flex flex-1 flex-col">
-      <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-2 font-mono text-xs md:px-6">
+      <div className="flex flex-wrap items-center gap-3 border-b border-border px-page py-2 font-mono text-xs">
         <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1">
           <ListTree aria-hidden className="size-3.5 text-muted-foreground" />
           Structured by {model ?? ai.label}
@@ -64,7 +64,7 @@ export function ReviewView({ next }: { next?: React.ReactNode }) {
         <HonestyChip flags={report.flags.length} />
       </div>
 
-      <div className="grid flex-1 gap-5 p-4 md:px-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid flex-1 gap-5 px-page py-4 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="flex min-w-0 flex-col gap-5">
           <SectionCard
             n={1}
@@ -451,7 +451,7 @@ export function ReviewView({ next }: { next?: React.ReactNode }) {
         </aside>
       </div>
 
-      <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-border bg-panel/95 px-4 py-3 backdrop-blur md:px-6">
+      <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-border bg-panel/95 px-page py-3 backdrop-blur">
         <p className="hidden items-center gap-2 font-mono text-xs text-muted-foreground sm:flex">
           <span
             aria-hidden

@@ -22,7 +22,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-panel/95 backdrop-blur">
-      <div className="flex h-14 items-center justify-between gap-4 px-4 md:px-6">
+      <div className="flex h-14 items-center justify-between gap-4 px-page">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
             <span aria-hidden className="size-2.5 rounded-[2px] bg-primary" />

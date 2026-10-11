@@ -31,7 +31,7 @@ const ATS_RULES = [
 
 export default function HomePage() {
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-16 px-4 py-10 md:px-6">
+    <main className="flex w-full flex-col gap-16 px-page py-10">
       <section className="mx-auto flex max-w-4xl flex-col items-center gap-4 pt-4 text-center">
         <div className="inline-flex flex-wrap items-center justify-center gap-x-2 rounded-md border border-border bg-console px-2.5 py-1 font-mono text-xs text-muted-foreground">
           <span className="text-warning">unpdf + mammoth</span>

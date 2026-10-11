@@ -89,7 +89,7 @@ export function ExportView() {
   const pass = result.diagnosis.issues.length === 0;
 
   return (
-    <main className="flex flex-1 flex-col gap-5 p-4 md:px-6">
+    <main className="flex flex-1 flex-col gap-5 px-page py-4">
       <section
         className={cn(
           "flex flex-wrap items-center justify-between gap-4 rounded-lg border border-l-4 bg-panel p-5",
